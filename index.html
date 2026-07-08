@@ -22,14 +22,9 @@
     --accent:#0a6ed1;
     --accent-dark:#0854a0;
     --hover:#f5faff;
-    --selected:#e5f0fa;
     --header-bg:#f2f3f5;
     --positive:#107e3e;
-    --positive-bg:#e8f6ee;
     --negative:#bb0000;
-    --negative-bg:#fbeaea;
-    --critical:#a65900;
-    --critical-bg:#fdf2e2;
   }
   *{box-sizing:border-box;}
   body{
@@ -41,7 +36,6 @@
     min-height:100vh;
   }
 
-  /* shell bar */
   .shell{
     background:var(--shell);
     color:var(--shell-text);
@@ -55,20 +49,9 @@
     width:28px;height:28px;
     display:flex;align-items:center;justify-content:center;
     border-radius:2px;
-    cursor:pointer;
-    opacity:0.85;
   }
-  .shell .menu-ico:hover{background:rgba(255,255,255,0.12);opacity:1;}
-  .shell .app-title{
-    font-size:15px;
-    font-weight:600;
-    letter-spacing:0.01em;
-  }
-  .shell .crumbs{
-    font-size:12px;
-    color:rgba(255,255,255,0.65);
-    margin-left:2px;
-  }
+  .shell .app-title{font-size:15px;font-weight:600;letter-spacing:0.01em;}
+  .shell .crumbs{font-size:12px;color:rgba(255,255,255,0.65);margin-left:2px;}
   .shell .spacer{flex:1;}
   .shell .avatar{
     width:26px;height:26px;border-radius:50%;
@@ -77,9 +60,8 @@
     font-size:11px;font-weight:600;color:#fff;
   }
 
-  .wrap{max-width:1180px;margin:0 auto;padding:16px 20px 40px;}
+  .wrap{max-width:1240px;margin:0 auto;padding:16px 20px 40px;}
 
-  /* list report header */
   .lr-header{
     background:var(--content-bg);
     border:1px solid var(--border);
@@ -91,24 +73,11 @@
     flex-wrap:wrap;
     gap:8px;
   }
-  .lr-header h1{
-    font-size:19px;
-    font-weight:600;
-    margin:0;
-    color:var(--text);
-  }
-  .lr-header .count-badge{
-    font-size:12px;
-    color:var(--text-secondary);
-    font-weight:400;
-    margin-left:8px;
-  }
-  .lr-header .src{
-    font-size:11.5px;
-    color:var(--text-muted);
-  }
+  .lr-header h1{font-size:19px;font-weight:600;margin:0;color:var(--text);}
+  .lr-header .count-badge{font-size:12px;color:var(--text-secondary);font-weight:400;margin-left:8px;}
+  .lr-header .src{font-size:11.5px;color:var(--text-muted);line-height:1.6;text-align:right;}
+  .lr-header .src b{color:var(--text-secondary);font-weight:500;}
 
-  /* filter bar */
   .filterbar{
     background:var(--content-bg);
     border:1px solid var(--border);
@@ -121,11 +90,7 @@
     flex-wrap:wrap;
   }
   .fld{display:flex;flex-direction:column;gap:4px;}
-  .fld label{
-    font-size:11px;
-    color:var(--text-secondary);
-    font-weight:500;
-  }
+  .fld label{font-size:11px;color:var(--text-secondary);font-weight:500;}
   .fld input[type=text], .fld select{
     font-family:'Inter', Arial, sans-serif;
     font-size:13px;
@@ -142,139 +107,109 @@
     border-color:var(--accent);
     box-shadow:0 0 0 1px var(--accent);
   }
-  .fld.grow input{flex:1;min-width:220px;}
+  .fld.grow input{flex:1;min-width:200px;}
   .go-btn{
-    height:30px;
-    padding:0 18px;
-    background:var(--accent);
-    color:#fff;
-    border:1px solid var(--accent);
-    border-radius:2px;
-    font-size:13px;
-    font-weight:500;
-    cursor:pointer;
+    height:30px;padding:0 18px;
+    background:var(--accent);color:#fff;
+    border:1px solid var(--accent);border-radius:2px;
+    font-size:13px;font-weight:500;cursor:pointer;
   }
   .go-btn:hover{background:var(--accent-dark);border-color:var(--accent-dark);}
   .clear-link{
-    font-size:12.5px;
-    color:var(--accent);
-    cursor:pointer;
-    background:none;
-    border:none;
-    padding:0;
-    text-decoration:none;
+    font-size:12.5px;color:var(--accent);cursor:pointer;
+    background:none;border:none;padding:0;
   }
   .clear-link:hover{text-decoration:underline;}
   .filegroup{
     margin-left:auto;
-    display:flex;
-    align-items:center;
-    gap:10px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
   }
+  .fileslot{display:flex;align-items:center;gap:6px;}
   .filebtn{
-    height:30px;
-    display:flex;align-items:center;gap:6px;
+    height:30px;display:flex;align-items:center;gap:6px;
     font-size:12.5px;
     border:1px solid var(--border-strong);
-    background:#fff;
-    color:var(--text);
-    padding:0 12px;
-    border-radius:2px;
-    cursor:pointer;
+    background:#fff;color:var(--text);
+    padding:0 12px;border-radius:2px;cursor:pointer;
   }
   .filebtn:hover{background:var(--hover);border-color:var(--accent);}
   .filename{
-    font-size:11.5px;
-    color:var(--text-muted);
-    max-width:150px;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-size:11px;color:var(--text-muted);
+    max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
-  #fileInput{display:none;}
+  #mpatInput, #ppvInput{display:none;}
 
-  /* table */
   .tablewrap{
     background:var(--content-bg);
     border:1px solid var(--border-strong);
     border-top:none;
     overflow-x:auto;
   }
-  table{width:100%;border-collapse:collapse;min-width:760px;}
+  table{width:100%;border-collapse:collapse;min-width:860px;}
   thead th{
     position:sticky;top:0;
     background:var(--header-bg);
     color:var(--text);
-    font-size:12px;
-    font-weight:600;
-    text-align:left;
+    font-size:12px;font-weight:600;text-align:left;
     padding:9px 14px;
     border-bottom:2px solid var(--border-strong);
     border-right:1px solid var(--border);
-    cursor:pointer;
-    white-space:nowrap;
-    user-select:none;
+    cursor:pointer;white-space:nowrap;user-select:none;
   }
   thead th:last-child{border-right:none;}
   thead th:hover{background:#e8ecf1;}
   thead th .arrow{color:var(--accent);margin-left:4px;font-size:10px;}
   thead th.num-col{text-align:right;}
+  thead th.computed{background:#eaf2fb;}
   tbody td{
     padding:8px 14px;
     border-bottom:1px solid var(--border);
     border-right:1px solid #ececec;
-    font-size:12.5px;
-    white-space:nowrap;
+    font-size:12.5px;white-space:nowrap;
   }
   tbody td:last-child{border-right:none;}
-  tbody tr:hover{background:var(--hover);}
   tbody tr:hover td{background:var(--hover);}
   td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  td.computed{background:#f6faff;}
   .partno{color:var(--accent-dark);font-weight:500;}
   .qbadge{
-    display:inline-block;
-    font-size:11px;
-    padding:2px 7px;
-    background:#eef1f4;
-    color:var(--text-secondary);
-    border:1px solid var(--border-strong);
-    border-radius:2px;
+    display:inline-block;font-size:11px;padding:2px 7px;
+    background:#eef1f4;color:var(--text-secondary);
+    border:1px solid var(--border-strong);border-radius:2px;
   }
   .price{font-variant-numeric:tabular-nums;}
+  .impact-pos{color:var(--negative);font-weight:500;}
+  .impact-neg{color:var(--positive);font-weight:500;}
+  .impact-na{color:var(--text-muted);font-style:italic;}
   .splitcell{display:flex;align-items:center;justify-content:flex-end;gap:8px;}
-  .splitbar{width:64px;height:6px;background:#e6e6e6;border-radius:1px;overflow:hidden;}
+  .splitbar{width:60px;height:6px;background:#e6e6e6;border-radius:1px;overflow:hidden;}
   .splitbar i{display:block;height:100%;background:var(--positive);}
   .splitbar.zero i{background:var(--negative);width:100% !important;opacity:0.25;}
   .splitval{font-size:12.5px;min-width:32px;text-align:right;}
-  .status-pos{color:var(--positive);}
-  .status-zero{color:var(--negative);}
   .empty{padding:60px 20px;text-align:center;color:var(--text-muted);font-size:12.5px;}
   .empty .sub{display:block;font-size:11.5px;margin-top:6px;}
 
-  /* status bar */
   .statusbar{
     background:var(--content-bg);
     border:1px solid var(--border-strong);
     border-top:none;
     padding:8px 18px;
-    display:flex;
-    gap:22px;
-    flex-wrap:wrap;
-    font-size:11.5px;
-    color:var(--text-secondary);
+    display:flex;gap:22px;flex-wrap:wrap;
+    font-size:11.5px;color:var(--text-secondary);
   }
   .statusbar b{color:var(--text);font-weight:600;}
+  .statusbar .neg-total{color:var(--negative);}
+  .statusbar .pos-total{color:var(--positive);}
 
-  .dropoverlay{
-    position:fixed;inset:0;
-    background:rgba(40,55,74,0.88);
-    display:none;
-    align-items:center;justify-content:center;
-    color:#fff;
-    font-size:15px;
-    letter-spacing:0.02em;
-    z-index:50;
-    pointer-events:none;
+  .legend{
+    padding:8px 18px;
+    font-size:11px;
+    color:var(--text-muted);
+    background:var(--content-bg);
+    border:1px solid var(--border-strong);
+    border-top:1px solid var(--border);
   }
-  .dropoverlay.active{display:flex;}
+  .legend b{color:var(--text-secondary);}
 
   @media (max-width:640px){
     .wrap{padding:12px;}
@@ -290,7 +225,7 @@
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 3h14M1 8h14M1 13h14" stroke="currentColor" stroke-width="1.5"/></svg>
   </div>
   <div class="app-title">Data Viewer</div>
-  <div class="crumbs">Sourcing &rsaquo; Part Master &rsaquo; MPAT</div>
+  <div class="crumbs">Sourcing &rsaquo; Part Master &rsaquo; MPAT vs PPV</div>
   <div class="spacer"></div>
   <div class="avatar">MP</div>
 </div>
@@ -298,9 +233,12 @@
 <div class="wrap">
   <div class="lr-header">
     <div>
-      <h1 id="lrTitle">MPAT — Part Data<span class="count-badge" id="countBadge">(7)</span></h1>
+      <h1>MPAT — Part Data<span class="count-badge" id="countBadge">(7)</span></h1>
     </div>
-    <div class="src">File: <span id="metaFile">MPAT_File.xlsx</span> &nbsp;|&nbsp; Sheet: <span id="metaSheet">Sheet1</span></div>
+    <div class="src">
+      MPAT: <b id="metaMpat">MPAT_File.xlsx</b><br>
+      PPV: <b id="metaPpv">PPV_File.xlsx</b>
+    </div>
   </div>
 
   <div class="filterbar">
@@ -319,12 +257,16 @@
     <button class="go-btn" id="goBtn" type="button">Go</button>
     <button class="clear-link" id="clearBtn" type="button">Clear filters</button>
     <div class="filegroup">
-      <span class="filename" id="fileLabel">MPAT_File.xlsx</span>
-      <button class="filebtn" id="loadBtn" type="button">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0L5 7m3 3l3-3M2 12v1.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Open file
-      </button>
-      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+      <div class="fileslot">
+        <span class="filename" id="mpatLabel">MPAT_File.xlsx</span>
+        <button class="filebtn" id="loadMpatBtn" type="button">Open MPAT</button>
+        <input type="file" id="mpatInput" accept=".xlsx,.xls,.csv">
+      </div>
+      <div class="fileslot">
+        <span class="filename" id="ppvLabel">PPV_File.xlsx</span>
+        <button class="filebtn" id="loadPpvBtn" type="button">Open PPV</button>
+        <input type="file" id="ppvInput" accept=".xlsx,.xls,.csv">
+      </div>
     </div>
   </div>
 
@@ -339,16 +281,17 @@
     </div>
   </div>
 
+  <div class="legend">
+    <b>PPV impact</b> = (MPAT item price &minus; PPV item price) &times; MOQ, matched by Part Number.
+    Red = MPAT price higher than PPV (cost increase). Green = MPAT price lower (savings). Matched against APN in the PPV file.
+  </div>
+
   <div class="statusbar" id="statusBar"></div>
 </div>
 
-<div class="dropoverlay" id="dropOverlay">Drop file to load ↓</div>
-
 <script>
-const DEFAULT_DATA = {
+const MPAT_DEFAULT = {
   fileName: "MPAT_File.xlsx",
-  sheetName: "Sheet1",
-  columns: ["Quarter","Part Number","Manufacturer Name","Item Price","MOQ","Business Split"],
   rows: [
     ["Q4'26","MEM-00292","GIGADEVICE",1.20,1500,20],
     ["Q4'26","MEM-00298","GIGADEVICE",1.34,200,30],
@@ -360,123 +303,149 @@ const DEFAULT_DATA = {
   ]
 };
 
-let state = {
-  columns: DEFAULT_DATA.columns,
-  rows: DEFAULT_DATA.rows,
-  fileName: DEFAULT_DATA.fileName,
-  sheetName: DEFAULT_DATA.sheetName,
-  sortCol: 0,
-  sortDir: 1
+const PPV_DEFAULT = {
+  fileName: "PPV_File.xlsx",
+  rows: [
+    ["Q4'26","MEM-00292","GIGADEVICE",2.40],
+    ["Q4'26","MEM-00298","GIGADEVICE",2.54],
+    ["Q4'26","MEM-00325","GIGADEVICE",2.55],
+    ["Q4'26","MEM-00344","GIGADEVICE",3.30],
+    ["Q4'26","MEM-00374","GIGADEVICE",3.50],
+    ["Q4'26","MEM-00422","GIGADEVICE",4.20],
+    ["Q4'26","MEM-00437","GIGADEVICE",3.66]
+  ]
 };
 
-function colType(name){
-  if(name === "Item Price" || name === "MOQ" || name === "Business Split") return "num";
-  return "text";
+let mpat = { fileName: MPAT_DEFAULT.fileName, rows: MPAT_DEFAULT.rows };
+let ppv = { fileName: PPV_DEFAULT.fileName, map: buildPpvMap(PPV_DEFAULT.rows) };
+let sortKey = 'quarter', sortDir = 1;
+
+function buildPpvMap(rows){
+  const map = {};
+  rows.forEach(r=>{
+    const part = String(r[1]).trim().toUpperCase();
+    map[part] = Number(r[3]);
+  });
+  return map;
 }
 
-function populateFilters(){
+const COLS = [
+  { key:'quarter', label:'Quarter', type:'badge' },
+  { key:'part', label:'Part Number', type:'mono' },
+  { key:'mfr', label:'Manufacturer Name', type:'text' },
+  { key:'price', label:'Item Price', type:'price' },
+  { key:'moq', label:'MOQ', type:'int' },
+  { key:'impact', label:'PPV Impact ($)', type:'impact', computed:true },
+  { key:'split', label:'Business Split', type:'split' }
+];
+
+function buildRecords(){
+  return mpat.rows.map(r=>{
+    const quarter = r[0], part = r[1], mfr = r[2], price = Number(r[3]), moq = Number(r[4]), split = Number(r[5]);
+    const key = String(part).trim().toUpperCase();
+    const ppvPrice = ppv.map.hasOwnProperty(key) ? ppv.map[key] : null;
+    const impact = ppvPrice === null ? null : (price - ppvPrice) * moq;
+    return { quarter, part, mfr, price, moq, split, ppvPrice, impact };
+  });
+}
+
+function populateFilters(records){
   const qSel = document.getElementById('quarterFilter');
   const mSel = document.getElementById('mfrFilter');
-  const qIdx = state.columns.indexOf("Quarter");
-  const mIdx = state.columns.indexOf("Manufacturer Name");
+  const curQ = qSel.value, curM = mSel.value;
   qSel.innerHTML = '<option value="">All</option>';
   mSel.innerHTML = '<option value="">All</option>';
-  if(qIdx === -1 || mIdx === -1) return;
-  const quarters = [...new Set(state.rows.map(r=>r[qIdx]))].sort();
-  const mfrs = [...new Set(state.rows.map(r=>r[mIdx]))].sort();
-  quarters.forEach(q=>{ const o=document.createElement('option'); o.value=q; o.textContent=q; qSel.appendChild(o); });
-  mfrs.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; mSel.appendChild(o); });
+  [...new Set(records.map(r=>r.quarter))].sort().forEach(q=>{
+    const o=document.createElement('option'); o.value=q; o.textContent=q; qSel.appendChild(o);
+  });
+  [...new Set(records.map(r=>r.mfr))].sort().forEach(m=>{
+    const o=document.createElement('option'); o.value=m; o.textContent=m; mSel.appendChild(o);
+  });
+  qSel.value = curQ; mSel.value = curM;
 }
 
 function renderHead(){
   const headRow = document.getElementById('headRow');
   headRow.innerHTML = '';
-  state.columns.forEach((col, i)=>{
+  COLS.forEach(col=>{
     const th = document.createElement('th');
-    if(colType(col) === 'num') th.classList.add('num-col');
-    th.textContent = col;
-    if(state.sortCol === i){
+    if(col.type==='price'||col.type==='int'||col.type==='impact'||col.type==='split') th.classList.add('num-col');
+    if(col.computed) th.classList.add('computed');
+    th.textContent = col.label;
+    if(sortKey === col.key){
       const arrow = document.createElement('span');
       arrow.className='arrow';
-      arrow.textContent = state.sortDir === 1 ? '▲' : '▼';
+      arrow.textContent = sortDir === 1 ? '▲' : '▼';
       th.appendChild(arrow);
     }
     th.addEventListener('click', ()=>{
-      if(state.sortCol === i){ state.sortDir *= -1; } else { state.sortCol = i; state.sortDir = 1; }
-      renderHead(); renderBody();
+      if(sortKey === col.key){ sortDir *= -1; } else { sortKey = col.key; sortDir = 1; }
+      renderAll();
     });
     headRow.appendChild(th);
   });
 }
 
-function fmtPrice(v){ const n = Number(v); return isNaN(n) ? v : '$' + n.toFixed(2); }
-function fmtInt(v){ const n = Number(v); return isNaN(n) ? v : n.toLocaleString(); }
+function fmtPrice(v){ return '$' + v.toFixed(2); }
+function fmtInt(v){ return v.toLocaleString(); }
+function fmtImpact(v){
+  if(v === null) return null;
+  const sign = v > 0 ? '+' : (v < 0 ? '\u2212' : '');
+  return sign + '$' + Math.abs(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 
-function renderBody(){
-  const search = document.getElementById('search').value.trim().toLowerCase();
-  const qFilter = document.getElementById('quarterFilter').value;
-  const mFilter = document.getElementById('mfrFilter').value;
-  const qIdx = state.columns.indexOf("Quarter");
-  const mIdx = state.columns.indexOf("Manufacturer Name");
-  const pIdx = state.columns.indexOf("Part Number");
-  const priceIdx = state.columns.indexOf("Item Price");
-  const moqIdx = state.columns.indexOf("MOQ");
-  const splitIdx = state.columns.indexOf("Business Split");
-
-  let rows = state.rows.filter(r=>{
-    if(qFilter && qIdx !== -1 && r[qIdx] !== qFilter) return false;
-    if(mFilter && mIdx !== -1 && r[mIdx] !== mFilter) return false;
-    if(search){
-      const hay = r.map(v=>String(v).toLowerCase()).join(' ');
-      if(!hay.includes(search)) return false;
-    }
-    return true;
-  });
-
-  const sc = state.sortCol, sd = state.sortDir;
-  rows = rows.slice().sort((a,b)=>{
-    let va = a[sc], vb = b[sc];
-    const isNum = colType(state.columns[sc]) === "num";
-    if(isNum){ va = Number(va)||0; vb = Number(vb)||0; return (va-vb)*sd; }
-    return String(va).localeCompare(String(vb)) * sd;
-  });
-
+function renderBody(records){
   const body = document.getElementById('bodyRows');
   const emptyState = document.getElementById('emptyState');
   body.innerHTML = '';
 
-  if(rows.length === 0){
+  if(records.length === 0){
     emptyState.style.display = 'block';
     document.getElementById('dataTable').style.display = 'none';
-  } else {
-    emptyState.style.display = 'none';
-    document.getElementById('dataTable').style.display = 'table';
+    return;
   }
+  emptyState.style.display = 'none';
+  document.getElementById('dataTable').style.display = 'table';
 
-  const maxSplit = Math.max(1, ...state.rows.map(r=> splitIdx!==-1 ? Number(r[splitIdx])||0 : 0));
+  const maxSplit = Math.max(1, ...records.map(r=>r.split||0));
 
-  rows.forEach(r=>{
+  records.forEach(r=>{
     const tr = document.createElement('tr');
-    state.columns.forEach((col, i)=>{
+    COLS.forEach(col=>{
       const td = document.createElement('td');
-      const val = r[i];
-      if(i === qIdx){
+      if(col.computed) td.classList.add('computed');
+      if(col.key === 'quarter'){
         const badge = document.createElement('span');
         badge.className = 'qbadge';
-        badge.textContent = val;
+        badge.textContent = r.quarter;
         td.appendChild(badge);
-      } else if(i === pIdx){
+      } else if(col.key === 'part'){
         td.className = 'partno';
-        td.textContent = val;
-      } else if(i === priceIdx){
+        td.textContent = r.part;
+      } else if(col.key === 'mfr'){
+        td.textContent = r.mfr;
+      } else if(col.key === 'price'){
         td.className = 'price num';
-        td.textContent = fmtPrice(val);
-      } else if(i === moqIdx){
+        td.textContent = fmtPrice(r.price);
+      } else if(col.key === 'moq'){
         td.className = 'num';
-        td.textContent = fmtInt(val);
-      } else if(i === splitIdx){
-        const n = Number(val) || 0;
+        td.textContent = fmtInt(r.moq);
+      } else if(col.key === 'impact'){
         td.className = 'num';
+        if(r.impact === null){
+          const span = document.createElement('span');
+          span.className = 'impact-na';
+          span.textContent = 'No PPV match';
+          td.appendChild(span);
+        } else {
+          const span = document.createElement('span');
+          span.className = r.impact > 0 ? 'impact-pos' : (r.impact < 0 ? 'impact-neg' : '');
+          span.textContent = fmtImpact(r.impact);
+          span.title = 'MPAT price $' + r.price.toFixed(2) + ' vs PPV price $' + r.ppvPrice.toFixed(2);
+          td.appendChild(span);
+        }
+      } else if(col.key === 'split'){
+        const n = r.split;
         const wrap = document.createElement('div');
         wrap.className = 'splitcell';
         const bar = document.createElement('div');
@@ -485,45 +454,35 @@ function renderBody(){
         fill.style.width = Math.max(2, (n / maxSplit) * 100) + '%';
         bar.appendChild(fill);
         const num = document.createElement('span');
-        num.className = 'splitval ' + (n === 0 ? 'status-zero' : 'status-pos');
+        num.className = 'splitval';
         num.textContent = n + '%';
         wrap.appendChild(bar);
         wrap.appendChild(num);
         td.appendChild(wrap);
-      } else {
-        td.textContent = val;
       }
       tr.appendChild(td);
     });
     body.appendChild(tr);
   });
-
-  document.getElementById('countBadge').textContent = '(' + rows.length + ')';
-  renderStatus(rows);
 }
 
-function renderStatus(visibleRows){
+function renderStatus(records){
   const bar = document.getElementById('statusBar');
   bar.innerHTML = '';
-  const priceIdx = state.columns.indexOf("Item Price");
-  const moqIdx = state.columns.indexOf("MOQ");
-  const splitIdx = state.columns.indexOf("Business Split");
-  const mIdx = state.columns.indexOf("Manufacturer Name");
-
   const items = [];
-  items.push('Displaying <b>' + visibleRows.length + '</b> of <b>' + state.rows.length + '</b> items');
-  if(mIdx !== -1) items.push('<b>' + new Set(visibleRows.map(r=>r[mIdx])).size + '</b> manufacturers');
-  if(priceIdx !== -1 && visibleRows.length){
-    const avg = visibleRows.reduce((s,r)=>s+(Number(r[priceIdx])||0),0)/visibleRows.length;
-    items.push('Avg price <b>$' + avg.toFixed(2) + '</b>');
-  }
-  if(moqIdx !== -1 && visibleRows.length){
-    const totalMoq = visibleRows.reduce((s,r)=>s+(Number(r[moqIdx])||0),0);
+  items.push('Displaying <b>' + records.length + '</b> of <b>' + buildRecords().length + '</b> items');
+  items.push('<b>' + new Set(records.map(r=>r.mfr)).size + '</b> manufacturers');
+  if(records.length){
+    const avg = records.reduce((s,r)=>s+r.price,0)/records.length;
+    items.push('Avg MPAT price <b>$' + avg.toFixed(2) + '</b>');
+    const totalMoq = records.reduce((s,r)=>s+r.moq,0);
     items.push('Total MOQ <b>' + totalMoq.toLocaleString() + '</b>');
-  }
-  if(splitIdx !== -1 && visibleRows.length){
-    const totalSplit = visibleRows.reduce((s,r)=>s+(Number(r[splitIdx])||0),0);
-    items.push('Split sum <b>' + totalSplit + '%</b>');
+    const matched = records.filter(r=>r.impact !== null);
+    if(matched.length){
+      const totalImpact = matched.reduce((s,r)=>s+r.impact,0);
+      const cls = totalImpact > 0 ? 'neg-total' : (totalImpact < 0 ? 'pos-total' : '');
+      items.push('Total PPV impact <b class="'+cls+'">' + fmtImpact(totalImpact) + '</b>');
+    }
   }
   items.forEach(html=>{
     const span = document.createElement('span');
@@ -532,74 +491,88 @@ function renderStatus(visibleRows){
   });
 }
 
-function refreshAll(){
-  document.getElementById('metaFile').textContent = state.fileName;
-  document.getElementById('metaSheet').textContent = state.sheetName;
-  document.getElementById('fileLabel').textContent = state.fileName;
-  populateFilters();
+function renderAll(){
+  document.getElementById('metaMpat').textContent = mpat.fileName;
+  document.getElementById('metaPpv').textContent = ppv.fileName;
+  document.getElementById('mpatLabel').textContent = mpat.fileName;
+  document.getElementById('ppvLabel').textContent = ppv.fileName;
+
+  const all = buildRecords();
+  populateFilters(all);
+
+  const search = document.getElementById('search').value.trim().toLowerCase();
+  const qFilter = document.getElementById('quarterFilter').value;
+  const mFilter = document.getElementById('mfrFilter').value;
+
+  let records = all.filter(r=>{
+    if(qFilter && r.quarter !== qFilter) return false;
+    if(mFilter && r.mfr !== mFilter) return false;
+    if(search){
+      const hay = (r.quarter+' '+r.part+' '+r.mfr).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  records = records.slice().sort((a,b)=>{
+    let va = a[sortKey], vb = b[sortKey];
+    if(va === null) va = -Infinity;
+    if(vb === null) vb = -Infinity;
+    if(typeof va === 'number'){ return (va-vb)*sortDir; }
+    return String(va).localeCompare(String(vb)) * sortDir;
+  });
+
+  document.getElementById('countBadge').textContent = '(' + records.length + ')';
   renderHead();
-  renderBody();
+  renderBody(records);
+  renderStatus(records);
 }
 
-function loadWorkbookData(wb, fileName){
-  const sheetName = wb.SheetNames[0];
-  const ws = wb.Sheets[sheetName];
-  const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
-  if(json.length < 1) return;
-  const columns = json[0].map(c=>String(c));
-  const rows = json.slice(1).filter(r=>r.some(v=>v!==""));
-  state = { columns, rows, fileName, sheetName, sortCol:0, sortDir:1 };
-  refreshAll();
+function readSheetRows(file, cb){
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    const data = new Uint8Array(evt.target.result);
+    const wb = XLSX.read(data, {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
+    const rows = json.slice(1).filter(r=>r.some(v=>v!==""));
+    cb(rows);
+  };
+  reader.readAsArrayBuffer(file);
 }
 
-document.getElementById('loadBtn').addEventListener('click', ()=> document.getElementById('fileInput').click());
-document.getElementById('fileInput').addEventListener('change', (e)=>{
+document.getElementById('loadMpatBtn').addEventListener('click', ()=> document.getElementById('mpatInput').click());
+document.getElementById('mpatInput').addEventListener('change', (e)=>{
   const file = e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (evt)=>{
-    const data = new Uint8Array(evt.target.result);
-    const wb = XLSX.read(data, {type:'array'});
-    loadWorkbookData(wb, file.name);
-  };
-  reader.readAsArrayBuffer(file);
-});
-
-['dragenter','dragover'].forEach(evt=>{
-  window.addEventListener(evt, (e)=>{ e.preventDefault(); document.getElementById('dropOverlay').classList.add('active'); });
-});
-['dragleave','drop'].forEach(evt=>{
-  window.addEventListener(evt, (e)=>{
-    e.preventDefault();
-    if(evt === 'dragleave' && e.relatedTarget) return;
-    document.getElementById('dropOverlay').classList.remove('active');
+  readSheetRows(file, rows=>{
+    mpat = { fileName: file.name, rows };
+    renderAll();
   });
 });
-window.addEventListener('drop', (e)=>{
-  e.preventDefault();
-  const file = e.dataTransfer.files[0];
+
+document.getElementById('loadPpvBtn').addEventListener('click', ()=> document.getElementById('ppvInput').click());
+document.getElementById('ppvInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (evt)=>{
-    const data = new Uint8Array(evt.target.result);
-    const wb = XLSX.read(data, {type:'array'});
-    loadWorkbookData(wb, file.name);
-  };
-  reader.readAsArrayBuffer(file);
+  readSheetRows(file, rows=>{
+    ppv = { fileName: file.name, map: buildPpvMap(rows) };
+    renderAll();
+  });
 });
 
-document.getElementById('search').addEventListener('input', renderBody);
-document.getElementById('quarterFilter').addEventListener('change', renderBody);
-document.getElementById('mfrFilter').addEventListener('change', renderBody);
-document.getElementById('goBtn').addEventListener('click', renderBody);
+document.getElementById('search').addEventListener('input', renderAll);
+document.getElementById('quarterFilter').addEventListener('change', renderAll);
+document.getElementById('mfrFilter').addEventListener('change', renderAll);
+document.getElementById('goBtn').addEventListener('click', renderAll);
 document.getElementById('clearBtn').addEventListener('click', ()=>{
   document.getElementById('search').value = '';
   document.getElementById('quarterFilter').value = '';
   document.getElementById('mfrFilter').value = '';
-  renderBody();
+  renderAll();
 });
 
-refreshAll();
+renderAll();
 </script>
 </body>
 </html>
