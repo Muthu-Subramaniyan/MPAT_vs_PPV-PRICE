@@ -6,267 +6,324 @@
 <title>MPAT — Part Data Viewer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
-    --paper:#EEF1EC;
-    --panel:#F8F9F6;
-    --ink:#1B2A2E;
-    --ink-soft:#4B5D60;
-    --ink-faint:#8B978F;
-    --line:#C7CFC5;
-    --line-strong:#9AA69B;
-    --copper:#B5651D;
-    --copper-soft:#E7C9A6;
-    --copper-bg:#F3E4D2;
-    --teal:#2F6F62;
-    --teal-bg:#DCEAE5;
-    --red:#A13A2B;
-    --red-bg:#F3DCD6;
+    --shell:#28374a;
+    --shell-text:#ffffff;
+    --page-bg:#f5f6f7;
+    --content-bg:#ffffff;
+    --border:#d9d9d9;
+    --border-strong:#bcbcbc;
+    --text:#32363a;
+    --text-secondary:#6a6d70;
+    --text-muted:#909398;
+    --accent:#0a6ed1;
+    --accent-dark:#0854a0;
+    --hover:#f5faff;
+    --selected:#e5f0fa;
+    --header-bg:#f2f3f5;
+    --positive:#107e3e;
+    --positive-bg:#e8f6ee;
+    --negative:#bb0000;
+    --negative-bg:#fbeaea;
+    --critical:#a65900;
+    --critical-bg:#fdf2e2;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:var(--paper);
-    background-image:
-      linear-gradient(var(--line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line) 1px, transparent 1px);
-    background-size:28px 28px;
-    background-attachment:fixed;
-    color:var(--ink);
-    font-family:'IBM Plex Sans', sans-serif;
-    min-height:100vh;
-    padding:32px 20px 60px;
-  }
-  .sheet{
-    max-width:1120px;
-    margin:0 auto;
-    background:var(--panel);
-    border:1px solid var(--line-strong);
-    box-shadow:0 1px 0 var(--line-strong);
-  }
-  /* title block */
-  .titleblock{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-    border-bottom:2px solid var(--ink);
-    padding:22px 28px 16px;
-    position:relative;
-  }
-  .titleblock::before, .titleblock::after{
-    content:"";
-    position:absolute;
-    width:10px;height:10px;
-    border:1.5px solid var(--ink);
-    top:8px;
-  }
-  .titleblock::before{left:8px;border-right:none;border-bottom:none;}
-  .titleblock::after{right:8px;border-left:none;border-bottom:none;}
-  .titleblock h1{
-    font-family:'Space Grotesk', sans-serif;
-    font-weight:600;
-    font-size:26px;
-    letter-spacing:0.02em;
-    margin:0 0 4px;
-  }
-  .titleblock .sub{
+    background:var(--page-bg);
+    color:var(--text);
+    font-family:'Inter', Arial, sans-serif;
     font-size:13px;
-    color:var(--ink-soft);
-    margin:0;
+    min-height:100vh;
   }
-  .meta{
-    text-align:right;
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color:var(--ink-soft);
-    line-height:1.6;
-  }
-  .meta b{color:var(--ink);font-weight:500;}
 
-  /* controls */
-  .controls{
+  /* shell bar */
+  .shell{
+    background:var(--shell);
+    color:var(--shell-text);
     display:flex;
-    flex-wrap:wrap;
-    gap:10px;
     align-items:center;
-    padding:16px 28px;
-    border-bottom:1px solid var(--line-strong);
-    background:var(--paper);
+    height:44px;
+    padding:0 12px;
+    gap:12px;
   }
-  .controls input[type=text], .controls select{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:12.5px;
-    background:var(--panel);
-    border:1px solid var(--line-strong);
-    color:var(--ink);
-    padding:8px 10px;
+  .shell .menu-ico{
+    width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:2px;
+    cursor:pointer;
+    opacity:0.85;
+  }
+  .shell .menu-ico:hover{background:rgba(255,255,255,0.12);opacity:1;}
+  .shell .app-title{
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:0.01em;
+  }
+  .shell .crumbs{
+    font-size:12px;
+    color:rgba(255,255,255,0.65);
+    margin-left:2px;
+  }
+  .shell .spacer{flex:1;}
+  .shell .avatar{
+    width:26px;height:26px;border-radius:50%;
+    background:#5a92c4;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:600;color:#fff;
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:16px 20px 40px;}
+
+  /* list report header */
+  .lr-header{
+    background:var(--content-bg);
+    border:1px solid var(--border);
+    border-bottom:none;
+    padding:14px 18px 12px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .lr-header h1{
+    font-size:19px;
+    font-weight:600;
+    margin:0;
+    color:var(--text);
+  }
+  .lr-header .count-badge{
+    font-size:12px;
+    color:var(--text-secondary);
+    font-weight:400;
+    margin-left:8px;
+  }
+  .lr-header .src{
+    font-size:11.5px;
+    color:var(--text-muted);
+  }
+
+  /* filter bar */
+  .filterbar{
+    background:var(--content-bg);
+    border:1px solid var(--border);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border-strong);
+    padding:12px 18px 14px;
+    display:flex;
+    align-items:flex-end;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .fld{display:flex;flex-direction:column;gap:4px;}
+  .fld label{
+    font-size:11px;
+    color:var(--text-secondary);
+    font-weight:500;
+  }
+  .fld input[type=text], .fld select{
+    font-family:'Inter', Arial, sans-serif;
+    font-size:13px;
+    height:30px;
+    border:1px solid var(--border-strong);
+    border-radius:2px;
+    background:#fff;
+    color:var(--text);
+    padding:0 8px;
+    min-width:170px;
     outline:none;
   }
-  .controls input[type=text]{min-width:190px;flex:1;}
-  .controls input[type=text]:focus, .controls select:focus{border-color:var(--copper);}
-  .controls label{
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-    color:var(--ink-faint);
-    margin-right:-4px;
+  .fld input[type=text]:focus, .fld select:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 1px var(--accent);
   }
+  .fld.grow input{flex:1;min-width:220px;}
+  .go-btn{
+    height:30px;
+    padding:0 18px;
+    background:var(--accent);
+    color:#fff;
+    border:1px solid var(--accent);
+    border-radius:2px;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+  }
+  .go-btn:hover{background:var(--accent-dark);border-color:var(--accent-dark);}
+  .clear-link{
+    font-size:12.5px;
+    color:var(--accent);
+    cursor:pointer;
+    background:none;
+    border:none;
+    padding:0;
+    text-decoration:none;
+  }
+  .clear-link:hover{text-decoration:underline;}
   .filegroup{
     margin-left:auto;
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:10px;
   }
   .filebtn{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11.5px;
-    border:1px solid var(--ink);
-    background:var(--ink);
-    color:var(--panel);
-    padding:8px 14px;
+    height:30px;
+    display:flex;align-items:center;gap:6px;
+    font-size:12.5px;
+    border:1px solid var(--border-strong);
+    background:#fff;
+    color:var(--text);
+    padding:0 12px;
+    border-radius:2px;
     cursor:pointer;
-    letter-spacing:0.03em;
   }
-  .filebtn:hover{background:#0f1a1c;}
+  .filebtn:hover{background:var(--hover);border-color:var(--accent);}
   .filename{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    color:var(--ink-faint);
-    max-width:160px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    font-size:11.5px;
+    color:var(--text-muted);
+    max-width:150px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
   #fileInput{display:none;}
 
   /* table */
-  .tablewrap{overflow-x:auto;}
+  .tablewrap{
+    background:var(--content-bg);
+    border:1px solid var(--border-strong);
+    border-top:none;
+    overflow-x:auto;
+  }
   table{width:100%;border-collapse:collapse;min-width:760px;}
   thead th{
     position:sticky;top:0;
-    background:var(--ink);
-    color:var(--panel);
-    font-family:'IBM Plex Mono', monospace;
-    font-weight:500;
-    font-size:11px;
-    letter-spacing:0.05em;
-    text-transform:uppercase;
+    background:var(--header-bg);
+    color:var(--text);
+    font-size:12px;
+    font-weight:600;
     text-align:left;
-    padding:11px 14px;
+    padding:9px 14px;
+    border-bottom:2px solid var(--border-strong);
+    border-right:1px solid var(--border);
     cursor:pointer;
     white-space:nowrap;
     user-select:none;
   }
-  thead th:hover{background:#0f1a1c;}
-  thead th .arrow{color:var(--copper-soft);margin-left:4px;font-size:10px;}
+  thead th:last-child{border-right:none;}
+  thead th:hover{background:#e8ecf1;}
+  thead th .arrow{color:var(--accent);margin-left:4px;font-size:10px;}
+  thead th.num-col{text-align:right;}
   tbody td{
-    padding:11px 14px;
-    border-bottom:1px solid var(--line);
-    font-size:13px;
+    padding:8px 14px;
+    border-bottom:1px solid var(--border);
+    border-right:1px solid #ececec;
+    font-size:12.5px;
     white-space:nowrap;
   }
-  tbody tr:nth-child(even){background:rgba(0,0,0,0.02);}
-  tbody tr:hover{background:var(--copper-bg);}
-  td.mono, .partno{font-family:'IBM Plex Mono', monospace;}
-  .partno{color:var(--ink);font-weight:500;}
+  tbody td:last-child{border-right:none;}
+  tbody tr:hover{background:var(--hover);}
+  tbody tr:hover td{background:var(--hover);}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .partno{color:var(--accent-dark);font-weight:500;}
   .qbadge{
     display:inline-block;
-    font-family:'IBM Plex Mono', monospace;
     font-size:11px;
-    padding:2px 8px;
-    background:var(--teal-bg);
-    color:var(--teal);
-    border:1px solid var(--teal);
+    padding:2px 7px;
+    background:#eef1f4;
+    color:var(--text-secondary);
+    border:1px solid var(--border-strong);
+    border-radius:2px;
   }
-  .price{font-family:'IBM Plex Mono', monospace;font-weight:500;}
-  .splitcell{display:flex;align-items:center;gap:8px;min-width:120px;}
-  .splitbar{
-    flex:1;height:6px;background:var(--line);position:relative;min-width:60px;
-  }
-  .splitbar i{
-    display:block;height:100%;background:var(--copper);
-  }
-  .splitbar.zero i{background:var(--red);width:100% !important;opacity:0.18;}
-  .splitval{font-family:'IBM Plex Mono', monospace;font-size:12px;min-width:32px;text-align:right;}
-  .empty{padding:60px 20px;text-align:center;color:var(--ink-faint);font-family:'IBM Plex Mono', monospace;font-size:12.5px;}
-  .empty i{display:block;font-size:11px;margin-top:6px;color:var(--ink-faint);}
+  .price{font-variant-numeric:tabular-nums;}
+  .splitcell{display:flex;align-items:center;justify-content:flex-end;gap:8px;}
+  .splitbar{width:64px;height:6px;background:#e6e6e6;border-radius:1px;overflow:hidden;}
+  .splitbar i{display:block;height:100%;background:var(--positive);}
+  .splitbar.zero i{background:var(--negative);width:100% !important;opacity:0.25;}
+  .splitval{font-size:12.5px;min-width:32px;text-align:right;}
+  .status-pos{color:var(--positive);}
+  .status-zero{color:var(--negative);}
+  .empty{padding:60px 20px;text-align:center;color:var(--text-muted);font-size:12.5px;}
+  .empty .sub{display:block;font-size:11.5px;margin-top:6px;}
 
-  /* footer strip */
-  .footstrip{
+  /* status bar */
+  .statusbar{
+    background:var(--content-bg);
+    border:1px solid var(--border-strong);
+    border-top:none;
+    padding:8px 18px;
     display:flex;
+    gap:22px;
     flex-wrap:wrap;
-    gap:0;
-    border-top:2px solid var(--ink);
+    font-size:11.5px;
+    color:var(--text-secondary);
   }
-  .stat{
-    flex:1;
-    min-width:130px;
-    padding:14px 20px;
-    border-right:1px solid var(--line-strong);
-  }
-  .stat:last-child{border-right:none;}
-  .stat .label{
-    font-size:10.5px;
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-    color:var(--ink-faint);
-    margin-bottom:4px;
-  }
-  .stat .value{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:18px;
-    font-weight:500;
-    color:var(--ink);
-  }
+  .statusbar b{color:var(--text);font-weight:600;}
+
   .dropoverlay{
     position:fixed;inset:0;
-    background:rgba(27,42,46,0.85);
+    background:rgba(40,55,74,0.88);
     display:none;
     align-items:center;justify-content:center;
-    color:#F8F9F6;
-    font-family:'IBM Plex Mono', monospace;
+    color:#fff;
     font-size:15px;
-    letter-spacing:0.04em;
+    letter-spacing:0.02em;
     z-index:50;
-    text-align:center;
     pointer-events:none;
   }
   .dropoverlay.active{display:flex;}
+
   @media (max-width:640px){
-    .titleblock{flex-direction:column;align-items:flex-start;gap:10px;}
-    .meta{text-align:left;}
-    .controls{padding:14px;}
+    .wrap{padding:12px;}
     .filegroup{margin-left:0;width:100%;}
+    .fld input, .fld select{min-width:140px;}
   }
 </style>
 </head>
 <body>
 
-<div class="sheet" id="sheet">
-  <div class="titleblock">
+<div class="shell">
+  <div class="menu-ico">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 3h14M1 8h14M1 13h14" stroke="currentColor" stroke-width="1.5"/></svg>
+  </div>
+  <div class="app-title">Data Viewer</div>
+  <div class="crumbs">Sourcing &rsaquo; Part Master &rsaquo; MPAT</div>
+  <div class="spacer"></div>
+  <div class="avatar">MP</div>
+</div>
+
+<div class="wrap">
+  <div class="lr-header">
     <div>
-      <h1>MPAT — Part Data</h1>
-      <p class="sub">Manufacturer part allocation &amp; pricing table</p>
+      <h1 id="lrTitle">MPAT — Part Data<span class="count-badge" id="countBadge">(7)</span></h1>
     </div>
-    <div class="meta">
-      FILE: <b id="metaFile">MPAT_File.xlsx</b><br>
-      ROWS: <b id="metaRows">7</b> &nbsp; SHEET: <b id="metaSheet">Sheet1</b><br>
-      REV: <b id="metaRev">01</b>
-    </div>
+    <div class="src">File: <span id="metaFile">MPAT_File.xlsx</span> &nbsp;|&nbsp; Sheet: <span id="metaSheet">Sheet1</span></div>
   </div>
 
-  <div class="controls">
-    <label>Search</label>
-    <input type="text" id="search" placeholder="Part number or manufacturer…">
-    <label>Quarter</label>
-    <select id="quarterFilter"><option value="">All</option></select>
-    <label>Manufacturer</label>
-    <select id="mfrFilter"><option value="">All</option></select>
+  <div class="filterbar">
+    <div class="fld grow">
+      <label>Search</label>
+      <input type="text" id="search" placeholder="Part number or manufacturer…">
+    </div>
+    <div class="fld">
+      <label>Quarter</label>
+      <select id="quarterFilter"><option value="">All</option></select>
+    </div>
+    <div class="fld">
+      <label>Manufacturer</label>
+      <select id="mfrFilter"><option value="">All</option></select>
+    </div>
+    <button class="go-btn" id="goBtn" type="button">Go</button>
+    <button class="clear-link" id="clearBtn" type="button">Clear filters</button>
     <div class="filegroup">
-      <span class="filename" id="fileLabel">Showing: MPAT_File.xlsx</span>
-      <button class="filebtn" id="loadBtn" type="button">Open .xlsx / .csv</button>
+      <span class="filename" id="fileLabel">MPAT_File.xlsx</span>
+      <button class="filebtn" id="loadBtn" type="button">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0L5 7m3 3l3-3M2 12v1.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Open file
+      </button>
       <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
     </div>
   </div>
@@ -278,11 +335,11 @@
     </table>
     <div class="empty" id="emptyState" style="display:none;">
       No rows match your filters.
-      <i>Try clearing search or resetting the dropdowns above.</i>
+      <span class="sub">Try clearing search or resetting the dropdowns above.</span>
     </div>
   </div>
 
-  <div class="footstrip" id="footStrip"></div>
+  <div class="statusbar" id="statusBar"></div>
 </div>
 
 <div class="dropoverlay" id="dropOverlay">Drop file to load ↓</div>
@@ -312,8 +369,6 @@ let state = {
   sortDir: 1
 };
 
-const COL_KEYS = { "Quarter":"quarter","Part Number":"part","Manufacturer Name":"mfr","Item Price":"price","MOQ":"moq","Business Split":"split" };
-
 function colType(name){
   if(name === "Item Price" || name === "MOQ" || name === "Business Split") return "num";
   return "text";
@@ -338,6 +393,7 @@ function renderHead(){
   headRow.innerHTML = '';
   state.columns.forEach((col, i)=>{
     const th = document.createElement('th');
+    if(colType(col) === 'num') th.classList.add('num-col');
     th.textContent = col;
     if(state.sortCol === i){
       const arrow = document.createElement('span');
@@ -413,13 +469,14 @@ function renderBody(){
         td.className = 'partno';
         td.textContent = val;
       } else if(i === priceIdx){
-        td.className = 'price';
+        td.className = 'price num';
         td.textContent = fmtPrice(val);
       } else if(i === moqIdx){
-        td.className = 'mono';
+        td.className = 'num';
         td.textContent = fmtInt(val);
       } else if(i === splitIdx){
         const n = Number(val) || 0;
+        td.className = 'num';
         const wrap = document.createElement('div');
         wrap.className = 'splitcell';
         const bar = document.createElement('div');
@@ -428,7 +485,7 @@ function renderBody(){
         fill.style.width = Math.max(2, (n / maxSplit) * 100) + '%';
         bar.appendChild(fill);
         const num = document.createElement('span');
-        num.className = 'splitval';
+        num.className = 'splitval ' + (n === 0 ? 'status-zero' : 'status-pos');
         num.textContent = n + '%';
         wrap.appendChild(bar);
         wrap.appendChild(num);
@@ -441,46 +498,44 @@ function renderBody(){
     body.appendChild(tr);
   });
 
-  renderFooter(rows);
+  document.getElementById('countBadge').textContent = '(' + rows.length + ')';
+  renderStatus(rows);
 }
 
-function renderFooter(visibleRows){
-  const foot = document.getElementById('footStrip');
-  foot.innerHTML = '';
+function renderStatus(visibleRows){
+  const bar = document.getElementById('statusBar');
+  bar.innerHTML = '';
   const priceIdx = state.columns.indexOf("Item Price");
   const moqIdx = state.columns.indexOf("MOQ");
   const splitIdx = state.columns.indexOf("Business Split");
   const mIdx = state.columns.indexOf("Manufacturer Name");
 
-  const stats = [];
-  stats.push({label:'Lines shown', value: visibleRows.length + ' / ' + state.rows.length});
-  if(mIdx !== -1) stats.push({label:'Manufacturers', value: new Set(visibleRows.map(r=>r[mIdx])).size});
+  const items = [];
+  items.push('Displaying <b>' + visibleRows.length + '</b> of <b>' + state.rows.length + '</b> items');
+  if(mIdx !== -1) items.push('<b>' + new Set(visibleRows.map(r=>r[mIdx])).size + '</b> manufacturers');
   if(priceIdx !== -1 && visibleRows.length){
     const avg = visibleRows.reduce((s,r)=>s+(Number(r[priceIdx])||0),0)/visibleRows.length;
-    stats.push({label:'Avg item price', value: '$'+avg.toFixed(2)});
+    items.push('Avg price <b>$' + avg.toFixed(2) + '</b>');
   }
   if(moqIdx !== -1 && visibleRows.length){
     const totalMoq = visibleRows.reduce((s,r)=>s+(Number(r[moqIdx])||0),0);
-    stats.push({label:'Total MOQ', value: totalMoq.toLocaleString()});
+    items.push('Total MOQ <b>' + totalMoq.toLocaleString() + '</b>');
   }
   if(splitIdx !== -1 && visibleRows.length){
     const totalSplit = visibleRows.reduce((s,r)=>s+(Number(r[splitIdx])||0),0);
-    stats.push({label:'Business split sum', value: totalSplit + '%'});
+    items.push('Split sum <b>' + totalSplit + '%</b>');
   }
-
-  stats.forEach(s=>{
-    const div = document.createElement('div');
-    div.className = 'stat';
-    div.innerHTML = '<div class="label">'+s.label+'</div><div class="value">'+s.value+'</div>';
-    foot.appendChild(div);
+  items.forEach(html=>{
+    const span = document.createElement('span');
+    span.innerHTML = html;
+    bar.appendChild(span);
   });
 }
 
 function refreshAll(){
   document.getElementById('metaFile').textContent = state.fileName;
   document.getElementById('metaSheet').textContent = state.sheetName;
-  document.getElementById('metaRows').textContent = state.rows.length;
-  document.getElementById('fileLabel').textContent = 'Showing: ' + state.fileName;
+  document.getElementById('fileLabel').textContent = state.fileName;
   populateFilters();
   renderHead();
   renderBody();
@@ -536,6 +591,13 @@ window.addEventListener('drop', (e)=>{
 document.getElementById('search').addEventListener('input', renderBody);
 document.getElementById('quarterFilter').addEventListener('change', renderBody);
 document.getElementById('mfrFilter').addEventListener('change', renderBody);
+document.getElementById('goBtn').addEventListener('click', renderBody);
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  document.getElementById('search').value = '';
+  document.getElementById('quarterFilter').value = '';
+  document.getElementById('mfrFilter').value = '';
+  renderBody();
+});
 
 refreshAll();
 </script>
