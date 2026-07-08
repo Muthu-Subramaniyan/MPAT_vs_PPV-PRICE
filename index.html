@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPAT — Part Data Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --paper:#EEF1EC;
+    --panel:#F8F9F6;
+    --ink:#1B2A2E;
+    --ink-soft:#4B5D60;
+    --ink-faint:#8B978F;
+    --line:#C7CFC5;
+    --line-strong:#9AA69B;
+    --copper:#B5651D;
+    --copper-soft:#E7C9A6;
+    --copper-bg:#F3E4D2;
+    --teal:#2F6F62;
+    --teal-bg:#DCEAE5;
+    --red:#A13A2B;
+    --red-bg:#F3DCD6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:28px 28px;
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    padding:32px 20px 60px;
+  }
+  .sheet{
+    max-width:1120px;
+    margin:0 auto;
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    box-shadow:0 1px 0 var(--line-strong);
+  }
+  /* title block */
+  .titleblock{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:2px solid var(--ink);
+    padding:22px 28px 16px;
+    position:relative;
+  }
+  .titleblock::before, .titleblock::after{
+    content:"";
+    position:absolute;
+    width:10px;height:10px;
+    border:1.5px solid var(--ink);
+    top:8px;
+  }
+  .titleblock::before{left:8px;border-right:none;border-bottom:none;}
+  .titleblock::after{right:8px;border-left:none;border-bottom:none;}
+  .titleblock h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:26px;
+    letter-spacing:0.02em;
+    margin:0 0 4px;
+  }
+  .titleblock .sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .meta{
+    text-align:right;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  .meta b{color:var(--ink);font-weight:500;}
+
+  /* controls */
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    padding:16px 28px;
+    border-bottom:1px solid var(--line-strong);
+    background:var(--paper);
+  }
+  .controls input[type=text], .controls select{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    color:var(--ink);
+    padding:8px 10px;
+    outline:none;
+  }
+  .controls input[type=text]{min-width:190px;flex:1;}
+  .controls input[type=text]:focus, .controls select:focus{border-color:var(--copper);}
+  .controls label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-faint);
+    margin-right:-4px;
+  }
+  .filegroup{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .filebtn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--panel);
+    padding:8px 14px;
+    cursor:pointer;
+    letter-spacing:0.03em;
+  }
+  .filebtn:hover{background:#0f1a1c;}
+  .filename{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-faint);
+    max-width:160px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  #fileInput{display:none;}
+
+  /* table */
+  .tablewrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;min-width:760px;}
+  thead th{
+    position:sticky;top:0;
+    background:var(--ink);
+    color:var(--panel);
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+    font-size:11px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    text-align:left;
+    padding:11px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+    user-select:none;
+  }
+  thead th:hover{background:#0f1a1c;}
+  thead th .arrow{color:var(--copper-soft);margin-left:4px;font-size:10px;}
+  tbody td{
+    padding:11px 14px;
+    border-bottom:1px solid var(--line);
+    font-size:13px;
+    white-space:nowrap;
+  }
+  tbody tr:nth-child(even){background:rgba(0,0,0,0.02);}
+  tbody tr:hover{background:var(--copper-bg);}
+  td.mono, .partno{font-family:'IBM Plex Mono', monospace;}
+  .partno{color:var(--ink);font-weight:500;}
+  .qbadge{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    padding:2px 8px;
+    background:var(--teal-bg);
+    color:var(--teal);
+    border:1px solid var(--teal);
+  }
+  .price{font-family:'IBM Plex Mono', monospace;font-weight:500;}
+  .splitcell{display:flex;align-items:center;gap:8px;min-width:120px;}
+  .splitbar{
+    flex:1;height:6px;background:var(--line);position:relative;min-width:60px;
+  }
+  .splitbar i{
+    display:block;height:100%;background:var(--copper);
+  }
+  .splitbar.zero i{background:var(--red);width:100% !important;opacity:0.18;}
+  .splitval{font-family:'IBM Plex Mono', monospace;font-size:12px;min-width:32px;text-align:right;}
+  .empty{padding:60px 20px;text-align:center;color:var(--ink-faint);font-family:'IBM Plex Mono', monospace;font-size:12.5px;}
+  .empty i{display:block;font-size:11px;margin-top:6px;color:var(--ink-faint);}
+
+  /* footer strip */
+  .footstrip{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0;
+    border-top:2px solid var(--ink);
+  }
+  .stat{
+    flex:1;
+    min-width:130px;
+    padding:14px 20px;
+    border-right:1px solid var(--line-strong);
+  }
+  .stat:last-child{border-right:none;}
+  .stat .label{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-faint);
+    margin-bottom:4px;
+  }
+  .stat .value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:18px;
+    font-weight:500;
+    color:var(--ink);
+  }
+  .dropoverlay{
+    position:fixed;inset:0;
+    background:rgba(27,42,46,0.85);
+    display:none;
+    align-items:center;justify-content:center;
+    color:#F8F9F6;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:15px;
+    letter-spacing:0.04em;
+    z-index:50;
+    text-align:center;
+    pointer-events:none;
+  }
+  .dropoverlay.active{display:flex;}
+  @media (max-width:640px){
+    .titleblock{flex-direction:column;align-items:flex-start;gap:10px;}
+    .meta{text-align:left;}
+    .controls{padding:14px;}
+    .filegroup{margin-left:0;width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet" id="sheet">
+  <div class="titleblock">
+    <div>
+      <h1>MPAT — Part Data</h1>
+      <p class="sub">Manufacturer part allocation &amp; pricing table</p>
+    </div>
+    <div class="meta">
+      FILE: <b id="metaFile">MPAT_File.xlsx</b><br>
+      ROWS: <b id="metaRows">7</b> &nbsp; SHEET: <b id="metaSheet">Sheet1</b><br>
+      REV: <b id="metaRev">01</b>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Search</label>
+    <input type="text" id="search" placeholder="Part number or manufacturer…">
+    <label>Quarter</label>
+    <select id="quarterFilter"><option value="">All</option></select>
+    <label>Manufacturer</label>
+    <select id="mfrFilter"><option value="">All</option></select>
+    <div class="filegroup">
+      <span class="filename" id="fileLabel">Showing: MPAT_File.xlsx</span>
+      <button class="filebtn" id="loadBtn" type="button">Open .xlsx / .csv</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    </div>
+  </div>
+
+  <div class="tablewrap">
+    <table id="dataTable">
+      <thead><tr id="headRow"></tr></thead>
+      <tbody id="bodyRows"></tbody>
+    </table>
+    <div class="empty" id="emptyState" style="display:none;">
+      No rows match your filters.
+      <i>Try clearing search or resetting the dropdowns above.</i>
+    </div>
+  </div>
+
+  <div class="footstrip" id="footStrip"></div>
+</div>
+
+<div class="dropoverlay" id="dropOverlay">Drop file to load ↓</div>
+
+<script>
+const DEFAULT_DATA = {
+  fileName: "MPAT_File.xlsx",
+  sheetName: "Sheet1",
+  columns: ["Quarter","Part Number","Manufacturer Name","Item Price","MOQ","Business Split"],
+  rows: [
+    ["Q4'26","MEM-00292","GIGADEVICE",1.20,1500,20],
+    ["Q4'26","MEM-00298","GIGADEVICE",1.34,200,30],
+    ["Q4'26","MEM-00325","GIGADEVICE",1.15,3500,40],
+    ["Q4'26","MEM-00344","GIGADEVICE",2.10,4200,0],
+    ["Q4'26","MEM-00374","GIGADEVICE",2.30,5000,50],
+    ["Q4'26","MEM-00422","GIGADEVICE",2.20,2500,0],
+    ["Q4'26","MEM-00437","GIGADEVICE",2.46,5000,80]
+  ]
+};
+
+let state = {
+  columns: DEFAULT_DATA.columns,
+  rows: DEFAULT_DATA.rows,
+  fileName: DEFAULT_DATA.fileName,
+  sheetName: DEFAULT_DATA.sheetName,
+  sortCol: 0,
+  sortDir: 1
+};
+
+const COL_KEYS = { "Quarter":"quarter","Part Number":"part","Manufacturer Name":"mfr","Item Price":"price","MOQ":"moq","Business Split":"split" };
+
+function colType(name){
+  if(name === "Item Price" || name === "MOQ" || name === "Business Split") return "num";
+  return "text";
+}
+
+function populateFilters(){
+  const qSel = document.getElementById('quarterFilter');
+  const mSel = document.getElementById('mfrFilter');
+  const qIdx = state.columns.indexOf("Quarter");
+  const mIdx = state.columns.indexOf("Manufacturer Name");
+  qSel.innerHTML = '<option value="">All</option>';
+  mSel.innerHTML = '<option value="">All</option>';
+  if(qIdx === -1 || mIdx === -1) return;
+  const quarters = [...new Set(state.rows.map(r=>r[qIdx]))].sort();
+  const mfrs = [...new Set(state.rows.map(r=>r[mIdx]))].sort();
+  quarters.forEach(q=>{ const o=document.createElement('option'); o.value=q; o.textContent=q; qSel.appendChild(o); });
+  mfrs.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; mSel.appendChild(o); });
+}
+
+function renderHead(){
+  const headRow = document.getElementById('headRow');
+  headRow.innerHTML = '';
+  state.columns.forEach((col, i)=>{
+    const th = document.createElement('th');
+    th.textContent = col;
+    if(state.sortCol === i){
+      const arrow = document.createElement('span');
+      arrow.className='arrow';
+      arrow.textContent = state.sortDir === 1 ? '▲' : '▼';
+      th.appendChild(arrow);
+    }
+    th.addEventListener('click', ()=>{
+      if(state.sortCol === i){ state.sortDir *= -1; } else { state.sortCol = i; state.sortDir = 1; }
+      renderHead(); renderBody();
+    });
+    headRow.appendChild(th);
+  });
+}
+
+function fmtPrice(v){ const n = Number(v); return isNaN(n) ? v : '$' + n.toFixed(2); }
+function fmtInt(v){ const n = Number(v); return isNaN(n) ? v : n.toLocaleString(); }
+
+function renderBody(){
+  const search = document.getElementById('search').value.trim().toLowerCase();
+  const qFilter = document.getElementById('quarterFilter').value;
+  const mFilter = document.getElementById('mfrFilter').value;
+  const qIdx = state.columns.indexOf("Quarter");
+  const mIdx = state.columns.indexOf("Manufacturer Name");
+  const pIdx = state.columns.indexOf("Part Number");
+  const priceIdx = state.columns.indexOf("Item Price");
+  const moqIdx = state.columns.indexOf("MOQ");
+  const splitIdx = state.columns.indexOf("Business Split");
+
+  let rows = state.rows.filter(r=>{
+    if(qFilter && qIdx !== -1 && r[qIdx] !== qFilter) return false;
+    if(mFilter && mIdx !== -1 && r[mIdx] !== mFilter) return false;
+    if(search){
+      const hay = r.map(v=>String(v).toLowerCase()).join(' ');
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const sc = state.sortCol, sd = state.sortDir;
+  rows = rows.slice().sort((a,b)=>{
+    let va = a[sc], vb = b[sc];
+    const isNum = colType(state.columns[sc]) === "num";
+    if(isNum){ va = Number(va)||0; vb = Number(vb)||0; return (va-vb)*sd; }
+    return String(va).localeCompare(String(vb)) * sd;
+  });
+
+  const body = document.getElementById('bodyRows');
+  const emptyState = document.getElementById('emptyState');
+  body.innerHTML = '';
+
+  if(rows.length === 0){
+    emptyState.style.display = 'block';
+    document.getElementById('dataTable').style.display = 'none';
+  } else {
+    emptyState.style.display = 'none';
+    document.getElementById('dataTable').style.display = 'table';
+  }
+
+  const maxSplit = Math.max(1, ...state.rows.map(r=> splitIdx!==-1 ? Number(r[splitIdx])||0 : 0));
+
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    state.columns.forEach((col, i)=>{
+      const td = document.createElement('td');
+      const val = r[i];
+      if(i === qIdx){
+        const badge = document.createElement('span');
+        badge.className = 'qbadge';
+        badge.textContent = val;
+        td.appendChild(badge);
+      } else if(i === pIdx){
+        td.className = 'partno';
+        td.textContent = val;
+      } else if(i === priceIdx){
+        td.className = 'price';
+        td.textContent = fmtPrice(val);
+      } else if(i === moqIdx){
+        td.className = 'mono';
+        td.textContent = fmtInt(val);
+      } else if(i === splitIdx){
+        const n = Number(val) || 0;
+        const wrap = document.createElement('div');
+        wrap.className = 'splitcell';
+        const bar = document.createElement('div');
+        bar.className = 'splitbar' + (n === 0 ? ' zero' : '');
+        const fill = document.createElement('i');
+        fill.style.width = Math.max(2, (n / maxSplit) * 100) + '%';
+        bar.appendChild(fill);
+        const num = document.createElement('span');
+        num.className = 'splitval';
+        num.textContent = n + '%';
+        wrap.appendChild(bar);
+        wrap.appendChild(num);
+        td.appendChild(wrap);
+      } else {
+        td.textContent = val;
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+
+  renderFooter(rows);
+}
+
+function renderFooter(visibleRows){
+  const foot = document.getElementById('footStrip');
+  foot.innerHTML = '';
+  const priceIdx = state.columns.indexOf("Item Price");
+  const moqIdx = state.columns.indexOf("MOQ");
+  const splitIdx = state.columns.indexOf("Business Split");
+  const mIdx = state.columns.indexOf("Manufacturer Name");
+
+  const stats = [];
+  stats.push({label:'Lines shown', value: visibleRows.length + ' / ' + state.rows.length});
+  if(mIdx !== -1) stats.push({label:'Manufacturers', value: new Set(visibleRows.map(r=>r[mIdx])).size});
+  if(priceIdx !== -1 && visibleRows.length){
+    const avg = visibleRows.reduce((s,r)=>s+(Number(r[priceIdx])||0),0)/visibleRows.length;
+    stats.push({label:'Avg item price', value: '$'+avg.toFixed(2)});
+  }
+  if(moqIdx !== -1 && visibleRows.length){
+    const totalMoq = visibleRows.reduce((s,r)=>s+(Number(r[moqIdx])||0),0);
+    stats.push({label:'Total MOQ', value: totalMoq.toLocaleString()});
+  }
+  if(splitIdx !== -1 && visibleRows.length){
+    const totalSplit = visibleRows.reduce((s,r)=>s+(Number(r[splitIdx])||0),0);
+    stats.push({label:'Business split sum', value: totalSplit + '%'});
+  }
+
+  stats.forEach(s=>{
+    const div = document.createElement('div');
+    div.className = 'stat';
+    div.innerHTML = '<div class="label">'+s.label+'</div><div class="value">'+s.value+'</div>';
+    foot.appendChild(div);
+  });
+}
+
+function refreshAll(){
+  document.getElementById('metaFile').textContent = state.fileName;
+  document.getElementById('metaSheet').textContent = state.sheetName;
+  document.getElementById('metaRows').textContent = state.rows.length;
+  document.getElementById('fileLabel').textContent = 'Showing: ' + state.fileName;
+  populateFilters();
+  renderHead();
+  renderBody();
+}
+
+function loadWorkbookData(wb, fileName){
+  const sheetName = wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+  const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
+  if(json.length < 1) return;
+  const columns = json[0].map(c=>String(c));
+  const rows = json.slice(1).filter(r=>r.some(v=>v!==""));
+  state = { columns, rows, fileName, sheetName, sortCol:0, sortDir:1 };
+  refreshAll();
+}
+
+document.getElementById('loadBtn').addEventListener('click', ()=> document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    const data = new Uint8Array(evt.target.result);
+    const wb = XLSX.read(data, {type:'array'});
+    loadWorkbookData(wb, file.name);
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+['dragenter','dragover'].forEach(evt=>{
+  window.addEventListener(evt, (e)=>{ e.preventDefault(); document.getElementById('dropOverlay').classList.add('active'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  window.addEventListener(evt, (e)=>{
+    e.preventDefault();
+    if(evt === 'dragleave' && e.relatedTarget) return;
+    document.getElementById('dropOverlay').classList.remove('active');
+  });
+});
+window.addEventListener('drop', (e)=>{
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    const data = new Uint8Array(evt.target.result);
+    const wb = XLSX.read(data, {type:'array'});
+    loadWorkbookData(wb, file.name);
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+document.getElementById('search').addEventListener('input', renderBody);
+document.getElementById('quarterFilter').addEventListener('change', renderBody);
+document.getElementById('mfrFilter').addEventListener('change', renderBody);
+
+refreshAll();
+</script>
+</body>
+</html>
