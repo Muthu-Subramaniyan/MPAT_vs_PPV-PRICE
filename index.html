@@ -178,8 +178,8 @@
     border:1px solid var(--border-strong);border-radius:2px;
   }
   .price{font-variant-numeric:tabular-nums;}
-  .impact-pos{color:var(--negative);font-weight:500;}
-  .impact-neg{color:var(--positive);font-weight:500;}
+  .impact-green{color:var(--positive);font-weight:500;}
+  .impact-red{color:var(--negative);font-weight:500;}
   .impact-na{color:var(--text-muted);font-style:italic;}
   .splitcell{display:flex;align-items:center;justify-content:flex-end;gap:8px;}
   .splitbar{width:60px;height:6px;background:#e6e6e6;border-radius:1px;overflow:hidden;}
@@ -198,8 +198,8 @@
     font-size:11.5px;color:var(--text-secondary);
   }
   .statusbar b{color:var(--text);font-weight:600;}
-  .statusbar .neg-total{color:var(--negative);}
-  .statusbar .pos-total{color:var(--positive);}
+  .statusbar .total-green{color:var(--positive);}
+  .statusbar .total-red{color:var(--negative);}
 
   .legend{
     padding:8px 18px;
@@ -282,8 +282,9 @@
   </div>
 
   <div class="legend">
-    <b>PPV impact</b> = (MPAT item price &minus; PPV item price) &times; MOQ, matched by Part Number.
-    Red = MPAT price higher than PPV (cost increase). Green = MPAT price lower (savings). Matched against APN in the PPV file.
+    <b>PPV Item Price</b> is looked up by Part Number from the PPV file. <b>MPAT − PPV Price</b> is the per-unit price difference.
+    <b>PPV impact</b> = (MPAT item price &minus; PPV item price) &times; MOQ.
+    Green = MPAT price higher than PPV (cost increase). Red = MPAT price lower (savings). Matched against APN in the PPV file.
   </div>
 
   <div class="statusbar" id="statusBar"></div>
@@ -334,6 +335,8 @@ const COLS = [
   { key:'part', label:'Part Number', type:'mono' },
   { key:'mfr', label:'Manufacturer Name', type:'text' },
   { key:'price', label:'Item Price', type:'price' },
+  { key:'ppvPrice', label:'PPV Item Price', type:'price', computed:true },
+  { key:'diff', label:'MPAT − PPV Price ($)', type:'diff', computed:true },
   { key:'moq', label:'MOQ', type:'int' },
   { key:'impact', label:'PPV Impact ($)', type:'impact', computed:true },
   { key:'split', label:'Business Split', type:'split' }
@@ -344,8 +347,9 @@ function buildRecords(){
     const quarter = r[0], part = r[1], mfr = r[2], price = Number(r[3]), moq = Number(r[4]), split = Number(r[5]);
     const key = String(part).trim().toUpperCase();
     const ppvPrice = ppv.map.hasOwnProperty(key) ? ppv.map[key] : null;
-    const impact = ppvPrice === null ? null : (price - ppvPrice) * moq;
-    return { quarter, part, mfr, price, moq, split, ppvPrice, impact };
+    const diff = ppvPrice === null ? null : (price - ppvPrice);
+    const impact = ppvPrice === null ? null : diff * moq;
+    return { quarter, part, mfr, price, moq, split, ppvPrice, diff, impact };
   });
 }
 
@@ -369,7 +373,7 @@ function renderHead(){
   headRow.innerHTML = '';
   COLS.forEach(col=>{
     const th = document.createElement('th');
-    if(col.type==='price'||col.type==='int'||col.type==='impact'||col.type==='split') th.classList.add('num-col');
+    if(col.type==='price'||col.type==='int'||col.type==='impact'||col.type==='split'||col.type==='diff') th.classList.add('num-col');
     if(col.computed) th.classList.add('computed');
     th.textContent = col.label;
     if(sortKey === col.key){
@@ -427,6 +431,22 @@ function renderBody(records){
       } else if(col.key === 'price'){
         td.className = 'price num';
         td.textContent = fmtPrice(r.price);
+      } else if(col.key === 'ppvPrice'){
+        td.className = 'price num';
+        td.textContent = r.ppvPrice === null ? '—' : fmtPrice(r.ppvPrice);
+      } else if(col.key === 'diff'){
+        td.className = 'num';
+        if(r.diff === null){
+          const span = document.createElement('span');
+          span.className = 'impact-na';
+          span.textContent = 'No PPV match';
+          td.appendChild(span);
+        } else {
+          const span = document.createElement('span');
+          span.className = r.diff > 0 ? 'impact-green' : (r.diff < 0 ? 'impact-red' : '');
+          span.textContent = fmtImpact(r.diff);
+          td.appendChild(span);
+        }
       } else if(col.key === 'moq'){
         td.className = 'num';
         td.textContent = fmtInt(r.moq);
@@ -439,7 +459,7 @@ function renderBody(records){
           td.appendChild(span);
         } else {
           const span = document.createElement('span');
-          span.className = r.impact > 0 ? 'impact-pos' : (r.impact < 0 ? 'impact-neg' : '');
+          span.className = r.impact > 0 ? 'impact-green' : (r.impact < 0 ? 'impact-red' : '');
           span.textContent = fmtImpact(r.impact);
           span.title = 'MPAT price $' + r.price.toFixed(2) + ' vs PPV price $' + r.ppvPrice.toFixed(2);
           td.appendChild(span);
@@ -480,7 +500,7 @@ function renderStatus(records){
     const matched = records.filter(r=>r.impact !== null);
     if(matched.length){
       const totalImpact = matched.reduce((s,r)=>s+r.impact,0);
-      const cls = totalImpact > 0 ? 'neg-total' : (totalImpact < 0 ? 'pos-total' : '');
+      const cls = totalImpact > 0 ? 'impact-green' : (totalImpact < 0 ? 'impact-red' : '');
       items.push('Total PPV impact <b class="'+cls+'">' + fmtImpact(totalImpact) + '</b>');
     }
   }
