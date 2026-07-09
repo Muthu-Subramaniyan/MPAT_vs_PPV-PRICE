@@ -138,6 +138,13 @@
     max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
   #mpatInput, #ppvInput{display:none;}
+  .tmpl-link{
+    font-size:11px;
+    color:var(--accent);
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .tmpl-link:hover{text-decoration:underline;}
 
   .tablewrap{
     background:var(--content-bg);
@@ -145,7 +152,7 @@
     border-top:none;
     overflow-x:auto;
   }
-  table{width:100%;border-collapse:collapse;min-width:860px;}
+  table{width:100%;border-collapse:collapse;min-width:1080px;}
   thead th{
     position:sticky;top:0;
     background:var(--header-bg);
@@ -172,6 +179,7 @@
   td.num{text-align:right;font-variant-numeric:tabular-nums;}
   td.computed{background:#f6faff;}
   .partno{color:var(--accent-dark);font-weight:500;}
+  .mono{font-family:'SFMono-Regular', Consolas, 'Liberation Mono', monospace; font-size:12px;}
   .qbadge{
     display:inline-block;font-size:11px;padding:2px 7px;
     background:#eef1f4;color:var(--text-secondary);
@@ -196,6 +204,40 @@
     padding:1px 5px;
     vertical-align:middle;
   }
+  th.actions-col{min-width:118px;}
+  td.actions-col{white-space:nowrap;}
+  .act-btn{
+    font-family:'Inter', Arial, sans-serif;
+    font-size:11.5px;
+    border:1px solid var(--border-strong);
+    background:#fff;
+    padding:4px 9px;
+    border-radius:2px;
+    cursor:pointer;
+    margin-right:6px;
+  }
+  .act-btn:last-child{margin-right:0;}
+  .act-edit{color:var(--accent);}
+  .act-edit:hover{background:var(--hover);border-color:var(--accent);}
+  .act-delete{color:var(--negative);}
+  .act-delete:hover{background:#fbeaea;border-color:var(--negative);}
+  .act-save{color:#fff;background:var(--positive);border-color:var(--positive);}
+  .act-save:hover{background:#0c6a35;}
+  .act-cancel{color:var(--text-secondary);}
+  .act-cancel:hover{background:var(--hover);}
+  tr.row-editing td{background:#fbfdf9;}
+  .edit-input{
+    font-family:'Inter', Arial, sans-serif;
+    font-size:12.5px;
+    border:1px solid var(--accent);
+    border-radius:2px;
+    padding:4px 6px;
+    width:100%;
+    min-width:80px;
+    outline:none;
+    box-sizing:border-box;
+  }
+  input.edit-input[type=number]{text-align:right;}
   .splitcell{display:flex;align-items:center;justify-content:flex-end;gap:8px;}
   .splitbar{width:60px;height:6px;background:#e6e6e6;border-radius:1px;overflow:hidden;}
   .splitbar i{display:block;height:100%;background:var(--positive);}
@@ -215,16 +257,6 @@
   .statusbar b{color:var(--text);font-weight:600;}
   .statusbar .total-green{color:var(--positive);}
   .statusbar .total-red{color:var(--negative);}
-
-  .legend{
-    padding:8px 18px;
-    font-size:11px;
-    color:var(--text-muted);
-    background:var(--content-bg);
-    border:1px solid var(--border-strong);
-    border-top:1px solid var(--border);
-  }
-  .legend b{color:var(--text-secondary);}
 
   @media (max-width:640px){
     .wrap{padding:12px;}
@@ -259,7 +291,7 @@
   <div class="filterbar">
     <div class="fld grow">
       <label>Search</label>
-      <input type="text" id="search" placeholder="Part number or manufacturer…">
+      <input type="text" id="search" placeholder="Part number, MPN, manufacturer, or CM…">
     </div>
     <div class="fld">
       <label>Quarter</label>
@@ -275,11 +307,13 @@
       <div class="fileslot">
         <span class="filename" id="mpatLabel">MPAT_File.xlsx</span>
         <button class="filebtn" id="loadMpatBtn" type="button">Open MPAT</button>
+        <a class="tmpl-link" id="downloadMpatTemplate" href="#">Template</a>
         <input type="file" id="mpatInput" accept=".xlsx,.xls,.csv">
       </div>
       <div class="fileslot">
         <span class="filename" id="ppvLabel">PPV_File.xlsx</span>
         <button class="filebtn" id="loadPpvBtn" type="button">Open PPV</button>
+        <a class="tmpl-link" id="downloadPpvTemplate" href="#">Template</a>
         <input type="file" id="ppvInput" accept=".xlsx,.xls,.csv">
       </div>
     </div>
@@ -296,13 +330,6 @@
     </div>
   </div>
 
-  <div class="legend">
-    <b>PPV Item Price</b> is matched by <b>Part Number + Manufacturer Name</b> from the PPV file. <b>MPAT − PPV Price</b> is the per-unit price difference.
-    <b>PPV impact</b> = (MPAT item price &minus; PPV item price) &times; MOQ.
-    Green = MPAT price higher than PPV (cost increase). Red = MPAT price lower (savings).
-    Rows highlighted <span style="color:#8a5a00;font-weight:600;">amber</span> and tagged <b>NEW · PPV ONLY</b> are Part Number + Manufacturer combinations found in the PPV file with no match in MPAT.
-  </div>
-
   <div class="statusbar" id="statusBar"></div>
 </div>
 
@@ -310,41 +337,47 @@
 const MPAT_DEFAULT = {
   fileName: "MPAT_File.xlsx",
   rows: [
-    ["Q4'26","MEM-00292","GIGADEVICE",1.20,1500,20],
-    ["Q4'26","MEM-00298","GIGADEVICE",1.34,200,30],
-    ["Q4'26","MEM-00325","GIGADEVICE",1.15,3500,40],
-    ["Q4'26","MEM-00344","GIGADEVICE",2.10,4200,0],
-    ["Q4'26","MEM-00374","GIGADEVICE",2.30,5000,50],
-    ["Q4'26","MEM-00422","GIGADEVICE",2.20,2500,0],
-    ["Q4'26","MEM-00437","GIGADEVICE",2.46,5000,80]
+    ["Q4'26","MEM-00292","GIGADEVICE","GD25Q127C","FOXCONN",1.20,1500,20],
+    ["Q4'26","MEM-00298","GIGADEVICE","GD25Q128C","FLEX",1.34,200,30],
+    ["Q4'26","MEM-00325","GIGADEVICE","GD25Q129C","JABIL",1.15,3500,40],
+    ["Q4'26","MEM-00344","GIGADEVICE","GD25Q130C","FOXCONN",2.10,4200,0],
+    ["Q4'26","MEM-00374","GIGADEVICE","GD25Q131C","CELESTICA",2.30,5000,50],
+    ["Q4'26","MEM-00422","GIGADEVICE","GD25Q132C","FLEX",2.20,2500,0],
+    ["Q4'26","MEM-00437","GIGADEVICE","GD25Q133C","JABIL",2.46,5000,80]
   ]
 };
 
 const PPV_DEFAULT = {
   fileName: "PPV_File.xlsx",
   rows: [
-    ["Q4'26","MEM-00292","GIGADEVICE",2.40],
-    ["Q4'26","MEM-00298","GIGADEVICE",2.54],
-    ["Q4'26","MEM-00325","GIGADEVICE",2.55],
-    ["Q4'26","MEM-00344","GIGADEVICE",3.30],
-    ["Q4'26","MEM-00374","GIGADEVICE",3.50],
-    ["Q4'26","MEM-00422","GIGADEVICE",4.20],
-    ["Q4'26","MEM-00437","GIGADEVICE",3.66]
+    ["Q4'26","MEM-00292","GIGADEVICE","GD25Q127C","FOXCONN",2.40],
+    ["Q4'26","MEM-00298","GIGADEVICE","GD25Q128C","FLEX",2.54],
+    ["Q4'26","MEM-00325","GIGADEVICE","GD25Q129C","JABIL",2.55],
+    ["Q4'26","MEM-00344","GIGADEVICE","GD25Q130C","FOXCONN",3.30],
+    ["Q4'26","MEM-00374","GIGADEVICE","GD25Q131C","CELESTICA",3.50],
+    ["Q4'26","MEM-00422","GIGADEVICE","GD25Q132C","FLEX",4.20],
+    ["Q4'26","MEM-00437","GIGADEVICE","GD25Q133C","JABIL",3.66]
   ]
 };
 
 let mpat = { fileName: MPAT_DEFAULT.fileName, rows: MPAT_DEFAULT.rows };
 let ppv = { fileName: PPV_DEFAULT.fileName, rows: PPV_DEFAULT.rows };
 let sortKey = 'quarter', sortDir = 1;
+let editingKey = null;
 
-function keyOf(part, mfr){
-  return String(part).trim().toUpperCase() + '||' + String(mfr).trim().toUpperCase();
+function rowKeyOf(r){
+  return 'm' + (r.mpatIndex === null ? 'x' : r.mpatIndex) + '_p' + (r.ppvIndex === null ? 'x' : r.ppvIndex);
+}
+
+function keyOf(part, mfr, mpn, cm){
+  return String(part).trim().toUpperCase() + '||' + String(mfr).trim().toUpperCase()
+    + '||' + String(mpn).trim().toUpperCase() + '||' + String(cm).trim().toUpperCase();
 }
 
 function buildPpvIndex(rows){
   const map = {};
-  rows.forEach(r=>{
-    map[keyOf(r[1], r[2])] = { quarter:r[0], part:r[1], mfr:r[2], price:Number(r[3]) };
+  rows.forEach((r, idx)=>{
+    map[keyOf(r[1], r[2], r[3], r[4])] = { quarter:r[0], part:r[1], mfr:r[2], mpn:r[3], cm:r[4], price:Number(r[5]), index:idx };
   });
   return map;
 }
@@ -353,12 +386,15 @@ const COLS = [
   { key:'quarter', label:'Quarter', type:'badge' },
   { key:'part', label:'Part Number', type:'mono' },
   { key:'mfr', label:'Manufacturer Name', type:'text' },
+  { key:'mpn', label:'Manufacturer Part Number', type:'mono' },
+  { key:'cm', label:'CM', type:'text' },
   { key:'price', label:'Item Price', type:'price' },
   { key:'ppvPrice', label:'PPV Item Price', type:'price', computed:true },
   { key:'diff', label:'MPAT − PPV Price ($)', type:'diff', computed:true },
   { key:'moq', label:'MOQ', type:'int' },
   { key:'impact', label:'PPV Impact ($)', type:'impact', computed:true },
-  { key:'split', label:'Business Split', type:'split' }
+  { key:'split', label:'Business Split', type:'split' },
+  { key:'actions', label:'', type:'actions' }
 ];
 
 function buildRecords(){
@@ -366,22 +402,25 @@ function buildRecords(){
   const mpatKeys = new Set();
   const records = [];
 
-  mpat.rows.forEach(r=>{
-    const quarter = r[0], part = r[1], mfr = r[2], price = Number(r[3]), moq = Number(r[4]), split = Number(r[5]);
-    const key = keyOf(part, mfr);
+  mpat.rows.forEach((r, idx)=>{
+    const quarter = r[0], part = r[1], mfr = r[2], mpn = r[3], cm = r[4],
+      price = Number(r[5]), moq = Number(r[6]), split = Number(r[7]);
+    const key = keyOf(part, mfr, mpn, cm);
     mpatKeys.add(key);
     const ppvMatch = ppvIndex.hasOwnProperty(key) ? ppvIndex[key] : null;
     const ppvPrice = ppvMatch ? ppvMatch.price : null;
     const diff = ppvPrice === null ? null : (price - ppvPrice);
     const impact = ppvPrice === null ? null : diff * moq;
-    records.push({ quarter, part, mfr, price, moq, split, ppvPrice, diff, impact, isNew:false });
+    records.push({ quarter, part, mfr, mpn, cm, price, moq, split, ppvPrice, diff, impact, isNew:false,
+      mpatIndex: idx, ppvIndex: ppvMatch ? ppvMatch.index : null });
   });
 
-  ppv.rows.forEach(r=>{
-    const quarter = r[0], part = r[1], mfr = r[2], ppvPrice = Number(r[3]);
-    const key = keyOf(part, mfr);
+  ppv.rows.forEach((r, idx)=>{
+    const quarter = r[0], part = r[1], mfr = r[2], mpn = r[3], cm = r[4], ppvPrice = Number(r[5]);
+    const key = keyOf(part, mfr, mpn, cm);
     if(mpatKeys.has(key)) return;
-    records.push({ quarter, part, mfr, price:null, moq:null, split:null, ppvPrice, diff:null, impact:null, isNew:true });
+    records.push({ quarter, part, mfr, mpn, cm, price:null, moq:null, split:null, ppvPrice, diff:null, impact:null, isNew:true,
+      mpatIndex: null, ppvIndex: idx });
   });
 
   return records;
@@ -407,6 +446,13 @@ function renderHead(){
   headRow.innerHTML = '';
   COLS.forEach(col=>{
     const th = document.createElement('th');
+    if(col.key === 'actions'){
+      th.textContent = '';
+      th.style.cursor = 'default';
+      th.classList.add('actions-col');
+      headRow.appendChild(th);
+      return;
+    }
     if(col.type==='price'||col.type==='int'||col.type==='impact'||col.type==='split'||col.type==='diff') th.classList.add('num-col');
     if(col.computed) th.classList.add('computed');
     th.textContent = col.label;
@@ -450,14 +496,23 @@ function renderBody(records){
   records.forEach(r=>{
     const tr = document.createElement('tr');
     if(r.isNew) tr.classList.add('row-new');
+    const rk = rowKeyOf(r);
+    const editing = (editingKey === rk);
+    if(editing) tr.classList.add('row-editing');
     COLS.forEach(col=>{
       const td = document.createElement('td');
       if(col.computed) td.classList.add('computed');
       if(col.key === 'quarter'){
-        const badge = document.createElement('span');
-        badge.className = 'qbadge';
-        badge.textContent = r.quarter;
-        td.appendChild(badge);
+        if(editing){
+          const inp = document.createElement('input');
+          inp.type = 'text'; inp.className = 'edit-input edit-quarter'; inp.value = r.quarter;
+          td.appendChild(inp);
+        } else {
+          const badge = document.createElement('span');
+          badge.className = 'qbadge';
+          badge.textContent = r.quarter;
+          td.appendChild(badge);
+        }
       } else if(col.key === 'part'){
         td.className = 'partno';
         td.textContent = r.part;
@@ -465,17 +520,42 @@ function renderBody(records){
           const tag = document.createElement('span');
           tag.className = 'newtag';
           tag.textContent = 'NEW · PPV ONLY';
-          tag.title = 'No matching Part Number + Manufacturer found in the MPAT file';
+          tag.title = 'No matching Part Number + Manufacturer + Manufacturer Part Number + CM found in the MPAT file';
           td.appendChild(tag);
         }
       } else if(col.key === 'mfr'){
-        td.textContent = r.mfr;
+        if(editing){
+          const inp = document.createElement('input');
+          inp.type = 'text'; inp.className = 'edit-input edit-mfr'; inp.value = r.mfr;
+          td.appendChild(inp);
+        } else {
+          td.textContent = r.mfr;
+        }
+      } else if(col.key === 'mpn'){
+        td.className = 'mono';
+        td.textContent = r.mpn || '—';
+      } else if(col.key === 'cm'){
+        td.textContent = r.cm || '—';
       } else if(col.key === 'price'){
         td.className = 'price num';
-        td.textContent = fmtPrice(r.price);
+        if(editing && r.mpatIndex !== null){
+          const inp = document.createElement('input');
+          inp.type = 'number'; inp.step = '0.01'; inp.min = '0';
+          inp.className = 'edit-input edit-price'; inp.value = r.price;
+          td.appendChild(inp);
+        } else {
+          td.textContent = fmtPrice(r.price);
+        }
       } else if(col.key === 'ppvPrice'){
         td.className = 'price num';
-        td.textContent = fmtPrice(r.ppvPrice);
+        if(editing && r.ppvIndex !== null){
+          const inp = document.createElement('input');
+          inp.type = 'number'; inp.step = '0.01'; inp.min = '0';
+          inp.className = 'edit-input edit-ppvprice'; inp.value = r.ppvPrice;
+          td.appendChild(inp);
+        } else {
+          td.textContent = fmtPrice(r.ppvPrice);
+        }
       } else if(col.key === 'diff'){
         td.className = 'num';
         if(r.diff === null){
@@ -528,11 +608,79 @@ function renderBody(records){
           wrap.appendChild(num);
           td.appendChild(wrap);
         }
+      } else if(col.key === 'actions'){
+        td.className = 'actions-col';
+        if(editing){
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'act-btn act-save'; saveBtn.type = 'button'; saveBtn.textContent = 'Save';
+          saveBtn.addEventListener('click', ()=> saveEdit(r, tr));
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'act-btn act-cancel'; cancelBtn.type = 'button'; cancelBtn.textContent = 'Cancel';
+          cancelBtn.addEventListener('click', ()=>{ editingKey = null; renderAll(); });
+          td.appendChild(saveBtn);
+          td.appendChild(cancelBtn);
+        } else {
+          const editBtn = document.createElement('button');
+          editBtn.className = 'act-btn act-edit'; editBtn.type = 'button'; editBtn.textContent = 'Edit';
+          editBtn.addEventListener('click', ()=>{ editingKey = rk; renderAll(); });
+          const delBtn = document.createElement('button');
+          delBtn.className = 'act-btn act-delete'; delBtn.type = 'button'; delBtn.textContent = 'Delete';
+          delBtn.addEventListener('click', ()=> deleteRecord(r));
+          td.appendChild(editBtn);
+          td.appendChild(delBtn);
+        }
       }
       tr.appendChild(td);
     });
     body.appendChild(tr);
   });
+}
+
+function saveEdit(r, trEl){
+  const quarterInp = trEl.querySelector('.edit-quarter');
+  const mfrInp = trEl.querySelector('.edit-mfr');
+  const priceInp = trEl.querySelector('.edit-price');
+  const ppvPriceInp = trEl.querySelector('.edit-ppvprice');
+
+  const newQuarter = quarterInp.value.trim();
+  const newMfr = mfrInp.value.trim();
+  if(!newQuarter || !newMfr){
+    alert('Quarter and Manufacturer Name cannot be empty.');
+    return;
+  }
+
+  let newPrice = null, newPpvPrice = null;
+  if(priceInp){
+    newPrice = parseFloat(priceInp.value);
+    if(isNaN(newPrice) || newPrice < 0){ alert('Enter a valid Item Price.'); return; }
+  }
+  if(ppvPriceInp){
+    newPpvPrice = parseFloat(ppvPriceInp.value);
+    if(isNaN(newPpvPrice) || newPpvPrice < 0){ alert('Enter a valid PPV Item Price.'); return; }
+  }
+
+  if(r.mpatIndex !== null){
+    mpat.rows[r.mpatIndex][0] = newQuarter;
+    mpat.rows[r.mpatIndex][2] = newMfr;
+    if(priceInp) mpat.rows[r.mpatIndex][5] = newPrice;
+  }
+  if(r.ppvIndex !== null){
+    ppv.rows[r.ppvIndex][0] = newQuarter;
+    ppv.rows[r.ppvIndex][2] = newMfr;
+    if(ppvPriceInp) ppv.rows[r.ppvIndex][5] = newPpvPrice;
+  }
+
+  editingKey = null;
+  renderAll();
+}
+
+function deleteRecord(r){
+  const label = r.part + ' (' + r.mfr + ')';
+  if(!confirm('Delete this line — ' + label + '? This removes it from the underlying MPAT and/or PPV data and cannot be undone.')) return;
+  if(r.mpatIndex !== null) mpat.rows.splice(r.mpatIndex, 1);
+  if(r.ppvIndex !== null) ppv.rows.splice(r.ppvIndex, 1);
+  editingKey = null;
+  renderAll();
 }
 
 function renderStatus(records){
@@ -582,7 +730,7 @@ function renderAll(){
     if(qFilter && r.quarter !== qFilter) return false;
     if(mFilter && r.mfr !== mFilter) return false;
     if(search){
-      const hay = (r.quarter+' '+r.part+' '+r.mfr).toLowerCase();
+      const hay = (r.quarter+' '+r.part+' '+r.mfr+' '+r.mpn+' '+r.cm).toLowerCase();
       if(!hay.includes(search)) return false;
     }
     return true;
@@ -644,6 +792,32 @@ document.getElementById('clearBtn').addEventListener('click', ()=>{
   document.getElementById('quarterFilter').value = '';
   document.getElementById('mfrFilter').value = '';
   renderAll();
+});
+
+function downloadTemplate(headers, exampleRow, fileName){
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
+  ws['!cols'] = headers.map(()=>({wch:18}));
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+  XLSX.writeFile(wb, fileName);
+}
+
+document.getElementById('downloadMpatTemplate').addEventListener('click', (e)=>{
+  e.preventDefault();
+  downloadTemplate(
+    ["Quarter","Part Number","Manufacturer Name","Manufacturer Part Number","CM","Item Price","MOQ","Business Split"],
+    ["Q1'27","MEM-00001","EXAMPLE-MFR","EX-MPN-001","EXAMPLE-CM",1.00,1000,50],
+    'MPAT_Template.xlsx'
+  );
+});
+
+document.getElementById('downloadPpvTemplate').addEventListener('click', (e)=>{
+  e.preventDefault();
+  downloadTemplate(
+    ["Quarter","Part Number","Manufacturer Name","Manufacturer Part Number","CM","Item Price"],
+    ["Q1'27","MEM-00001","EXAMPLE-MFR","EX-MPN-001","EXAMPLE-CM",1.20],
+    'PPV_Template.xlsx'
+  );
 });
 
 renderAll();
