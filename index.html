@@ -181,6 +181,21 @@
   .impact-green{color:var(--positive);font-weight:500;}
   .impact-red{color:var(--negative);font-weight:500;}
   .impact-na{color:var(--text-muted);font-style:italic;}
+  tr.row-new td{background:#fff9e8;}
+  tr.row-new:hover td{background:#fef2cf;}
+  .newtag{
+    display:inline-block;
+    margin-left:8px;
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    color:#8a5a00;
+    background:#ffe9ad;
+    border:1px solid #e0b23c;
+    border-radius:2px;
+    padding:1px 5px;
+    vertical-align:middle;
+  }
   .splitcell{display:flex;align-items:center;justify-content:flex-end;gap:8px;}
   .splitbar{width:60px;height:6px;background:#e6e6e6;border-radius:1px;overflow:hidden;}
   .splitbar i{display:block;height:100%;background:var(--positive);}
@@ -282,9 +297,10 @@
   </div>
 
   <div class="legend">
-    <b>PPV Item Price</b> is looked up by Part Number from the PPV file. <b>MPAT − PPV Price</b> is the per-unit price difference.
+    <b>PPV Item Price</b> is matched by <b>Part Number + Manufacturer Name</b> from the PPV file. <b>MPAT − PPV Price</b> is the per-unit price difference.
     <b>PPV impact</b> = (MPAT item price &minus; PPV item price) &times; MOQ.
-    Green = MPAT price higher than PPV (cost increase). Red = MPAT price lower (savings). Matched against APN in the PPV file.
+    Green = MPAT price higher than PPV (cost increase). Red = MPAT price lower (savings).
+    Rows highlighted <span style="color:#8a5a00;font-weight:600;">amber</span> and tagged <b>NEW · PPV ONLY</b> are Part Number + Manufacturer combinations found in the PPV file with no match in MPAT.
   </div>
 
   <div class="statusbar" id="statusBar"></div>
@@ -318,14 +334,17 @@ const PPV_DEFAULT = {
 };
 
 let mpat = { fileName: MPAT_DEFAULT.fileName, rows: MPAT_DEFAULT.rows };
-let ppv = { fileName: PPV_DEFAULT.fileName, map: buildPpvMap(PPV_DEFAULT.rows) };
+let ppv = { fileName: PPV_DEFAULT.fileName, rows: PPV_DEFAULT.rows };
 let sortKey = 'quarter', sortDir = 1;
 
-function buildPpvMap(rows){
+function keyOf(part, mfr){
+  return String(part).trim().toUpperCase() + '||' + String(mfr).trim().toUpperCase();
+}
+
+function buildPpvIndex(rows){
   const map = {};
   rows.forEach(r=>{
-    const part = String(r[1]).trim().toUpperCase();
-    map[part] = Number(r[3]);
+    map[keyOf(r[1], r[2])] = { quarter:r[0], part:r[1], mfr:r[2], price:Number(r[3]) };
   });
   return map;
 }
@@ -343,14 +362,29 @@ const COLS = [
 ];
 
 function buildRecords(){
-  return mpat.rows.map(r=>{
+  const ppvIndex = buildPpvIndex(ppv.rows);
+  const mpatKeys = new Set();
+  const records = [];
+
+  mpat.rows.forEach(r=>{
     const quarter = r[0], part = r[1], mfr = r[2], price = Number(r[3]), moq = Number(r[4]), split = Number(r[5]);
-    const key = String(part).trim().toUpperCase();
-    const ppvPrice = ppv.map.hasOwnProperty(key) ? ppv.map[key] : null;
+    const key = keyOf(part, mfr);
+    mpatKeys.add(key);
+    const ppvMatch = ppvIndex.hasOwnProperty(key) ? ppvIndex[key] : null;
+    const ppvPrice = ppvMatch ? ppvMatch.price : null;
     const diff = ppvPrice === null ? null : (price - ppvPrice);
     const impact = ppvPrice === null ? null : diff * moq;
-    return { quarter, part, mfr, price, moq, split, ppvPrice, diff, impact };
+    records.push({ quarter, part, mfr, price, moq, split, ppvPrice, diff, impact, isNew:false });
   });
+
+  ppv.rows.forEach(r=>{
+    const quarter = r[0], part = r[1], mfr = r[2], ppvPrice = Number(r[3]);
+    const key = keyOf(part, mfr);
+    if(mpatKeys.has(key)) return;
+    records.push({ quarter, part, mfr, price:null, moq:null, split:null, ppvPrice, diff:null, impact:null, isNew:true });
+  });
+
+  return records;
 }
 
 function populateFilters(records){
@@ -390,8 +424,8 @@ function renderHead(){
   });
 }
 
-function fmtPrice(v){ return '$' + v.toFixed(2); }
-function fmtInt(v){ return v.toLocaleString(); }
+function fmtPrice(v){ return v === null || v === undefined ? '—' : '$' + v.toFixed(2); }
+function fmtInt(v){ return v === null || v === undefined ? '—' : v.toLocaleString(); }
 function fmtImpact(v){
   if(v === null) return null;
   const sign = v > 0 ? '+' : (v < 0 ? '\u2212' : '');
@@ -415,6 +449,7 @@ function renderBody(records){
 
   records.forEach(r=>{
     const tr = document.createElement('tr');
+    if(r.isNew) tr.classList.add('row-new');
     COLS.forEach(col=>{
       const td = document.createElement('td');
       if(col.computed) td.classList.add('computed');
@@ -426,6 +461,13 @@ function renderBody(records){
       } else if(col.key === 'part'){
         td.className = 'partno';
         td.textContent = r.part;
+        if(r.isNew){
+          const tag = document.createElement('span');
+          tag.className = 'newtag';
+          tag.textContent = 'NEW · PPV ONLY';
+          tag.title = 'No matching Part Number + Manufacturer found in the MPAT file';
+          td.appendChild(tag);
+        }
       } else if(col.key === 'mfr'){
         td.textContent = r.mfr;
       } else if(col.key === 'price'){
@@ -433,13 +475,13 @@ function renderBody(records){
         td.textContent = fmtPrice(r.price);
       } else if(col.key === 'ppvPrice'){
         td.className = 'price num';
-        td.textContent = r.ppvPrice === null ? '—' : fmtPrice(r.ppvPrice);
+        td.textContent = fmtPrice(r.ppvPrice);
       } else if(col.key === 'diff'){
         td.className = 'num';
         if(r.diff === null){
           const span = document.createElement('span');
           span.className = 'impact-na';
-          span.textContent = 'No PPV match';
+          span.textContent = r.isNew ? 'No MPAT match' : 'No PPV match';
           td.appendChild(span);
         } else {
           const span = document.createElement('span');
@@ -455,7 +497,7 @@ function renderBody(records){
         if(r.impact === null){
           const span = document.createElement('span');
           span.className = 'impact-na';
-          span.textContent = 'No PPV match';
+          span.textContent = r.isNew ? 'No MPAT match' : 'No PPV match';
           td.appendChild(span);
         } else {
           const span = document.createElement('span');
@@ -466,19 +508,26 @@ function renderBody(records){
         }
       } else if(col.key === 'split'){
         const n = r.split;
-        const wrap = document.createElement('div');
-        wrap.className = 'splitcell';
-        const bar = document.createElement('div');
-        bar.className = 'splitbar' + (n === 0 ? ' zero' : '');
-        const fill = document.createElement('i');
-        fill.style.width = Math.max(2, (n / maxSplit) * 100) + '%';
-        bar.appendChild(fill);
-        const num = document.createElement('span');
-        num.className = 'splitval';
-        num.textContent = n + '%';
-        wrap.appendChild(bar);
-        wrap.appendChild(num);
-        td.appendChild(wrap);
+        if(n === null){
+          const span = document.createElement('span');
+          span.className = 'impact-na';
+          span.textContent = '—';
+          td.appendChild(span);
+        } else {
+          const wrap = document.createElement('div');
+          wrap.className = 'splitcell';
+          const bar = document.createElement('div');
+          bar.className = 'splitbar' + (n === 0 ? ' zero' : '');
+          const fill = document.createElement('i');
+          fill.style.width = Math.max(2, (n / maxSplit) * 100) + '%';
+          bar.appendChild(fill);
+          const num = document.createElement('span');
+          num.className = 'splitval';
+          num.textContent = n + '%';
+          wrap.appendChild(bar);
+          wrap.appendChild(num);
+          td.appendChild(wrap);
+        }
       }
       tr.appendChild(td);
     });
@@ -492,11 +541,16 @@ function renderStatus(records){
   const items = [];
   items.push('Displaying <b>' + records.length + '</b> of <b>' + buildRecords().length + '</b> items');
   items.push('<b>' + new Set(records.map(r=>r.mfr)).size + '</b> manufacturers');
+  const newCount = records.filter(r=>r.isNew).length;
+  if(newCount) items.push('<b>' + newCount + '</b> new (PPV only)');
   if(records.length){
-    const avg = records.reduce((s,r)=>s+r.price,0)/records.length;
-    items.push('Avg MPAT price <b>$' + avg.toFixed(2) + '</b>');
-    const totalMoq = records.reduce((s,r)=>s+r.moq,0);
-    items.push('Total MOQ <b>' + totalMoq.toLocaleString() + '</b>');
+    const withPrice = records.filter(r=>r.price !== null);
+    if(withPrice.length){
+      const avg = withPrice.reduce((s,r)=>s+r.price,0)/withPrice.length;
+      items.push('Avg MPAT price <b>$' + avg.toFixed(2) + '</b>');
+      const totalMoq = withPrice.reduce((s,r)=>s+r.moq,0);
+      items.push('Total MOQ <b>' + totalMoq.toLocaleString() + '</b>');
+    }
     const matched = records.filter(r=>r.impact !== null);
     if(matched.length){
       const totalImpact = matched.reduce((s,r)=>s+r.impact,0);
@@ -576,7 +630,7 @@ document.getElementById('ppvInput').addEventListener('change', (e)=>{
   const file = e.target.files[0];
   if(!file) return;
   readSheetRows(file, rows=>{
-    ppv = { fileName: file.name, map: buildPpvMap(rows) };
+    ppv = { fileName: file.name, rows };
     renderAll();
   });
 });
